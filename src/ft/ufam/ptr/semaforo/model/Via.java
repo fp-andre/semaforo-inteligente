@@ -87,6 +87,16 @@ public class Via implements ClockListener {
 		return hashmap.get(viaID).getPrimeiroVeiculo();
 	}
 	
+	/** Retorna a quantidade de veículos existentes nas faixas */
+	public int getOcupacaoVia() {
+		int ocupacaoVia = 0;
+		
+		for (Faixa faixa: getFaixas())
+			ocupacaoVia += faixa.getOcupacaoFaixa();
+		
+		return ocupacaoVia;
+	}
+	
 	/** Verifica se há espaço na via para a inserção de um novo veículo.
 	 *  Nota: vias apenas consumidoras sempre tem espaço! */
 	public boolean temEspacoNaVia() {

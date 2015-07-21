@@ -1,5 +1,6 @@
 package ft.ufam.ptr.semaforo;
 
+import java.util.*;
 import ft.ufam.ptr.semaforo.clock.*;
 
 /** Implementação do semáforo mestre do sistema. Este, por sua vez, move
@@ -10,7 +11,7 @@ import ft.ufam.ptr.semaforo.clock.*;
  *  @see SemaforoSlave
  *  @author Felipe André
  *  @author Paulo Henrique
- *  @version 1.0, 15/07/2015 */
+ *  @version 1.5, 20/07/2015 */
 public class SemaforoMaster extends Semaforo implements ClockListener {
 
 	/* Variáveis de temporização dos semáforos */
@@ -23,11 +24,12 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 	private boolean wait;
 	
 	/* Semáforos do sistema */
-	private SemaforoListener semaforoSlave;
+	private ArrayList<SemaforoListener> listaSemaforos;
 	private SemaforoMaster simetrico;
 	
 	/** Inicializa as temporizações fixas do semáforo */
 	public SemaforoMaster() {
+		this.listaSemaforos = new ArrayList<SemaforoListener>();
 		this.tempoVerdeIT = Tempo.VERDE_INTERMITENTE;
 		this.tempoAmarelo = Tempo.AMARELO;
 		this.tempoAvisoVermelho = Tempo.AVISO_VERMELHO;
@@ -38,9 +40,16 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 		this.simetrico = simetrico;
 	}
 	
+	/** Cadastra o semáforo de pedestres desta classe */
+	public void setSemaforoPedestre(SemaforoPedestre pedestre) {
+		if (!listaSemaforos.contains(pedestre))
+			listaSemaforos.add(pedestre);
+	}
+	
 	/** Cadastra o semáforo escravo desta classe */
 	public void setSemaforoSlave(SemaforoListener slave) {
-		this.semaforoSlave = slave;
+		if (!listaSemaforos.contains(slave))
+			listaSemaforos.add(slave);
 	}
 	
 	/** Modifica o tempo máximo (dado em ciclos) que
@@ -56,12 +65,12 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 		this.wait = true;
 	}
 	
-	/** Dispara um evento do semáforo mestre no seu respectivo escravo */
-	private void alertaSemaforoSlave() {
-		if (semaforoSlave != null) {
-			SemaforoEvent evento = new SemaforoEvent(this);
-			semaforoSlave.onStateChange(evento);
-		}
+	/** Dispara um evento do semáforo mestre aos seus respectivos escravos */
+	private void alertaSemaforos() {
+		SemaforoEvent evento = new SemaforoEvent(this);
+		
+		for (SemaforoListener semaforo: listaSemaforos)
+			semaforo.onStateChange(evento);
 	}
 	
 	/** Verifica se um determinado tempo foi esgotado */
@@ -72,7 +81,6 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 	/** Implementação da máquina de estados do semáforo */
 	private void runStateMachine() {
 		incrementaCiclos();
-		imprimeEstadoAtual();
 		
 		Estado estadoAtual = getEstadoAtual();
 		
@@ -112,7 +120,8 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 			break;
 		}
 		
-		alertaSemaforoSlave();
+		imprimeEstadoAtual();
+		alertaSemaforos();
 	}
 	
 	@Override

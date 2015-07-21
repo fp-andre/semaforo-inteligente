@@ -5,13 +5,15 @@ import ft.ufam.ptr.semaforo.clock.Clock;
 public class SemaforoMain {
 
 	public static void main(String[] args) {
-		Clock clock = new Clock(2000);
+		Clock clock = new Clock(700);
 		
 		SemaforoMaster m1 = new SemaforoMaster();
 		SemaforoMaster m2 = new SemaforoMaster();
 		
 		SemaforoSlave s1  = new SemaforoSlave();
 		SemaforoSlave s2  = new SemaforoSlave();
+		
+		SemaforoPedestre p1 = new SemaforoPedestre();
 		
 		m1.setEstadoVerde();
 		m1.setTempoVerde(5);
@@ -24,8 +26,10 @@ public class SemaforoMain {
 		m1.setSemaforoSlave(s1);
 		m2.setSemaforoSlave(s2);
 		
+		m1.setSemaforoPedestre(p1);
+		
 		clock.addClockListener(m1);
-		clock.addClockListener(m2);
+		//clock.addClockListener(m2);
 		
 		clock.start();
 	}

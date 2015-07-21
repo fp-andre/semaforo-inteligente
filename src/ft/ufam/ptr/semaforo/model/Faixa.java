@@ -55,6 +55,17 @@ public class Faixa {
 		return (faixa[0] == null);
 	}
 	
+	/** Retorna a quantidade de veículos existentes na faixa */
+	protected int getOcupacaoFaixa() {
+		int veiculos = 0;
+		
+		for (Veiculo veiculo: faixa)
+			if (veiculo != null)
+				veiculos++;
+		
+		return veiculos;
+	}
+	
 	/** Tenta inserir um veículo na faixa, se tiver espaço na mesma */
 	protected synchronized boolean insereVeiculo(Veiculo veiculo) {
 		if (temEspaco()) {
