@@ -1,5 +1,8 @@
 package ft.ufam.ptr.semaforo;
 
+import java.util.*;
+import ft.ufam.ptr.semaforo.model.*;
+
 /** Define a forma mais genérica de um semáforo.
  *  @see SemaforoMaster
  *  @see SemaforoSlave
@@ -9,11 +12,15 @@ package ft.ufam.ptr.semaforo;
 public class Semaforo {
 	
 	/* Atributos da classe */
+	private ArrayList<SemaforoListener> listaListeners;
+	private Local local;
 	private Estado estadoAtual;
 	private int ciclos = 1;
 	
 	/** Inicializa o semáforo com estado inicial em "ATENCAO" */
-	public Semaforo() {
+	public Semaforo(Local local) {
+		this.local = local;
+		this.listaListeners = new ArrayList<SemaforoListener>();
 		setEstadoAtual(Estado.VERMELHO_INTERMITENTE);
 	}
 	
@@ -50,6 +57,24 @@ public class Semaforo {
 	/** Imprime o estado atual do semáforo */
 	protected void imprimeEstadoAtual() {
 		System.out.println(estadoAtual.name());
+	}
+	
+	/** Retorna a localização do semáforo */
+	public Local getLocalizacao() {
+		return local;
+	}
+
+	public void addSemaforoListener(SemaforoListener listener) {
+		if (!listaListeners.contains(listener))
+			listaListeners.add(listener);
+	}
+	
+	/** Dispara um evento do semáforo mestre aos seus respectivos escravos */
+	public void disparaEventos() {
+		SemaforoEvent evento = new SemaforoEvent(this);
+		
+		for (SemaforoListener semaforo: listaListeners)
+			semaforo.onStateChange(evento);
 	}
 	
 }

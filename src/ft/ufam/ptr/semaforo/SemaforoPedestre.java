@@ -1,5 +1,7 @@
 package ft.ufam.ptr.semaforo;
 
+import ft.ufam.ptr.semaforo.model.*;
+
 /** Implementação do semáforo de pedestres do sistema. Este, por sua vez,
  *  realiza a cópia de seu mestre, mas de forma adaptada à sua realidade.
  *  @author Felipe André
@@ -7,6 +9,10 @@ package ft.ufam.ptr.semaforo;
  *  @version 1.0, 20/07/2015 */
 public class SemaforoPedestre extends Semaforo implements SemaforoListener {
 
+	public SemaforoPedestre(Local local) {
+		super(local);
+	}
+	
 	/** Comportamento adaptado ao semáforo de pedestres */
 	private void processaEstado(Estado estado) {
 		
@@ -39,6 +45,8 @@ public class SemaforoPedestre extends Semaforo implements SemaforoListener {
 		Semaforo base = (Semaforo) event.getSource();
 		Estado atual = base.getEstadoAtual();
 		processaEstado(atual);
+		
+		disparaEventos();
 	}
 
 }

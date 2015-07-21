@@ -1,5 +1,7 @@
 package ft.ufam.ptr.semaforo;
 
+import ft.ufam.ptr.semaforo.model.Local;
+
 /** Implementação do semáforo escravo do sistema. Este, por sua vez,
  *  apenas copia o estado atual do semáforo mestre associado a este.
  *  @see Semaforo
@@ -8,6 +10,10 @@ package ft.ufam.ptr.semaforo;
  *  @author Paulo Henrique
  *  @version 1.0, 15/07/2015 */
 public class SemaforoSlave extends Semaforo implements SemaforoListener {
+
+	public SemaforoSlave(Local local) {
+		super(local);
+	}
 
 	/** Copia o estado atual do semáforo mestre */
 	private void copiaEstadoAtual(Semaforo master) {
@@ -19,6 +25,8 @@ public class SemaforoSlave extends Semaforo implements SemaforoListener {
 	public void onStateChange(SemaforoEvent event) {
 		Semaforo master = (Semaforo) event.getSource();
 		copiaEstadoAtual(master);
+		
+		disparaEventos();
 	}
 	
 }

@@ -1,8 +1,10 @@
 package ft.ufam.ptr.semaforo.model;
 
 import java.util.*;
+
 import ft.ufam.ptr.semaforo.*;
 import ft.ufam.ptr.semaforo.clock.*;
+import ft.ufam.ptr.semaforo.graphics.TelaPrincipal;
 
 /** Implementa um Cruzamento, onde há uma Via de viaEntrada,
  *  um Semaforo de referência e N Via's de saída, informadas
@@ -20,15 +22,17 @@ public class Cruzamento implements ClockListener {
 	private final Semaforo semaforo;
 	private Estado anterior, atual;
 	private HashMap<Local,Via> viasSaida;
+	private TelaPrincipal screen;
 	
 	/** Instancia um objeto Cruzamento.
 	 *  @param viaEntrada - Via de viaEntrada (origem)
 	 *  @param semaforo - Semáforo associado a este cruzamento */
-	public Cruzamento(Via viaEntrada, Semaforo semaforo) {
+	public Cruzamento(Via viaEntrada, Semaforo semaforo, TelaPrincipal screen) {
 		this.viasSaida = new HashMap<Local,Via>();
 		this.viaEntrada   = viaEntrada;
 		this.semaforo  = semaforo;
 		this.fluxo = 0;
+		this.screen = screen;
 	}
 
 	/** Cadastra uma via de saída no cruzamento.
@@ -89,7 +93,11 @@ public class Cruzamento implements ClockListener {
 		if (semaforo.aberto())
 			movimentaVeiculos();
 		detectaTransicao();
-		viaEntrada.imprimeVia();
+		//viaEntrada.imprimeVia();
+		
+		screen.fireFluxoUpdate(viaEntrada.getLocalizacao(), getFluxoVeiculos());
+		screen.fireOcupacaoUpdate(viaEntrada.getLocalizacao(), viaEntrada.getOcupacaoVia());
+		
 	}
 	
 }

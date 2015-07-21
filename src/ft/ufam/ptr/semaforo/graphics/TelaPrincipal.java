@@ -1,16 +1,19 @@
 package ft.ufam.ptr.semaforo.graphics;
 
 import javax.swing.*;
+
+import ft.ufam.ptr.semaforo.*;
+import ft.ufam.ptr.semaforo.model.*;
 import ft.ufam.ptr.semaforo.utils.*;
 
 /** Contém a implementação da interface gráfica principal do sistema.
  *  @author Felipe André
  *  @version 1.0, 16/04/2015 */
-public class TelaPrincipal extends JFrame {
+public class TelaPrincipal extends JFrame implements SemaforoListener {
 
 	/* Atributos da classe */
 	private static final long serialVersionUID = 1L;
-	private JPanel painel;
+	private final JPanel painel;
 	private JTextField textSemaforoX;
 	private JTextField textFluxoX;
 	private JTextField textOcupacaoX;
@@ -74,5 +77,108 @@ public class TelaPrincipal extends JFrame {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setResizable(false);
 		setVisible(true);
+		
+		new Simulador(this);
+	}
+	
+	public void fireFluxoUpdate(Local chave, int valor) {
+		
+		String texto = String.valueOf(valor);
+		
+		switch (chave) {
+			case JAPIIM_ENTRADA_CAMPUS:
+				fireTextFieldUpdate(textFluxoX, texto);
+			break;
+			
+			case ENTRADA_SAIDA_CAMPUS:
+			break;
+			
+			case COROADO_ENTRADA_CAMPUS:
+			break;
+			
+			case SAIDA_CAMPUS_COROADO:
+			break;
+			
+			default:
+			break;
+		}
+	}
+	
+	private void fireSemaforoUpdate(Local chave, Estado atual) {
+		
+		String texto = atual.name();
+		
+		switch (chave) {
+			case JAPIIM_ENTRADA_CAMPUS:
+				fireTextFieldUpdate(textSemaforoX, texto);
+				break;
+		
+			case ENTRADA_SAIDA_CAMPUS:
+				break;
+		
+			case COROADO_ENTRADA_CAMPUS:
+				break;
+		
+			case SAIDA_CAMPUS_COROADO:
+				break;
+		
+			default:
+				break;
+		}
+	}
+	
+	public void fireOcupacaoUpdate(Local chave, int valor) {
+		
+		String texto = String.valueOf(valor);
+		
+		switch (chave) {
+			case JAPIIM_ENTRADA_CAMPUS:
+				fireTextFieldUpdate(textOcupacaoX, texto);
+				break;
+		
+			case ENTRADA_SAIDA_CAMPUS:
+				break;
+		
+			case COROADO_ENTRADA_CAMPUS:
+				break;
+		
+			case SAIDA_CAMPUS_COROADO:
+				break;
+		
+			default:
+				break;
+	}
+	}
+	
+	public void fireTextFieldUpdate(JTextField key, String value) {
+		GraphicsUpdater thread = new GraphicsUpdater(key, value);
+		SwingUtilities.invokeLater(thread);
+	}
+	
+	private class GraphicsUpdater implements Runnable {
+
+		private JTextField textField;
+		private String value;
+		
+		public GraphicsUpdater(JTextField textField, String value) {
+			this.textField = textField;
+			this.value = value;
+		}
+		
+		@Override
+		public void run() {
+			textField.setText(value);
+		}
+		
+	}
+
+	@Override
+	public void onStateChange(SemaforoEvent event) {
+		Semaforo semaforo = (Semaforo) event.getSource();
+		
+		Estado atual = semaforo.getEstadoAtual();
+		Local  local = semaforo.getLocalizacao();
+		
+		fireSemaforoUpdate(local, atual);
 	}
 }

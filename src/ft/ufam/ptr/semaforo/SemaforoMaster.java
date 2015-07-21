@@ -1,7 +1,7 @@
 package ft.ufam.ptr.semaforo;
 
-import java.util.*;
 import ft.ufam.ptr.semaforo.clock.*;
+import ft.ufam.ptr.semaforo.model.*;
 
 /** Implementação do semáforo mestre do sistema. Este, por sua vez, move
  *  a máquina de estados e sinaliza aos seus escravos o seu estado atual.
@@ -24,12 +24,11 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 	private boolean wait;
 	
 	/* Semáforos do sistema */
-	private ArrayList<SemaforoListener> listaSemaforos;
 	private SemaforoMaster simetrico;
 	
 	/** Inicializa as temporizações fixas do semáforo */
-	public SemaforoMaster() {
-		this.listaSemaforos = new ArrayList<SemaforoListener>();
+	public SemaforoMaster(Local local) {
+		super(local);
 		this.tempoVerdeIT = Tempo.VERDE_INTERMITENTE;
 		this.tempoAmarelo = Tempo.AMARELO;
 		this.tempoAvisoVermelho = Tempo.AVISO_VERMELHO;
@@ -42,14 +41,12 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 	
 	/** Cadastra o semáforo de pedestres desta classe */
 	public void setSemaforoPedestre(SemaforoPedestre pedestre) {
-		if (!listaSemaforos.contains(pedestre))
-			listaSemaforos.add(pedestre);
+		addSemaforoListener(pedestre);
 	}
 	
 	/** Cadastra o semáforo escravo desta classe */
 	public void setSemaforoSlave(SemaforoListener slave) {
-		if (!listaSemaforos.contains(slave))
-			listaSemaforos.add(slave);
+		addSemaforoListener(slave);
 	}
 	
 	/** Modifica o tempo máximo (dado em ciclos) que
@@ -63,14 +60,6 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 		reiniciaCiclos();
 		setEstadoAtual(Estado.VERDE);
 		this.wait = true;
-	}
-	
-	/** Dispara um evento do semáforo mestre aos seus respectivos escravos */
-	private void alertaSemaforos() {
-		SemaforoEvent evento = new SemaforoEvent(this);
-		
-		for (SemaforoListener semaforo: listaSemaforos)
-			semaforo.onStateChange(evento);
 	}
 	
 	/** Verifica se um determinado tempo foi esgotado */
@@ -121,12 +110,12 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 		}
 		
 		imprimeEstadoAtual();
-		alertaSemaforos();
 	}
 	
 	@Override
 	public void evento(ClockEvent event) {
 		runStateMachine();
+		disparaEventos ();
 	}
 	
 }

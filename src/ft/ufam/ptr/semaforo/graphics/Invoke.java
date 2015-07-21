@@ -27,7 +27,6 @@ public class Invoke extends JFrame {
 		setVisible(true);
 		
 		new Updater().start();
-		SwingUtilities.invokeLater(new Update());
 	}
 	
 	private class Updater extends Thread {

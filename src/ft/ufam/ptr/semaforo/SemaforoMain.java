@@ -7,13 +7,13 @@ public class SemaforoMain {
 	public static void main(String[] args) {
 		Clock clock = new Clock(700);
 		
-		SemaforoMaster m1 = new SemaforoMaster();
-		SemaforoMaster m2 = new SemaforoMaster();
+		SemaforoMaster m1 = new SemaforoMaster(null);
+		SemaforoMaster m2 = new SemaforoMaster(null);
 		
-		SemaforoSlave s1  = new SemaforoSlave();
-		SemaforoSlave s2  = new SemaforoSlave();
+		SemaforoSlave s1  = new SemaforoSlave(null);
+		SemaforoSlave s2  = new SemaforoSlave(null);
 		
-		SemaforoPedestre p1 = new SemaforoPedestre();
+		SemaforoPedestre p1 = new SemaforoPedestre(null);
 		
 		m1.setEstadoVerde();
 		m1.setTempoVerde(5);
