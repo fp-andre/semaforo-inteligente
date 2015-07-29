@@ -51,13 +51,14 @@ public class Via implements ClockListener {
 	
 	/** Retorna as faixas que esta via possui */
 	public Collection<Faixa> getFaixas() {
-		return hashmap.values();
+		return (hashmap == null) ? null : hashmap.values();
 	}
 	
 	/** Desloca os veículos de todas as faixas da via */
 	public void deslocaVeiculos() {
-		for (Faixa faixa: hashmap.values())
-			faixa.deslocaVeiculos();
+		if (hashmap != null)
+			for (Faixa faixa: hashmap.values())
+				faixa.deslocaVeiculos();
 	}
 	
 	/** Retorna a localização desta via */
@@ -90,9 +91,14 @@ public class Via implements ClockListener {
 	/** Retorna a quantidade de veículos existentes nas faixas */
 	public int getOcupacaoVia() {
 		int ocupacaoVia = 0;
-		
-		for (Faixa faixa: getFaixas())
-			ocupacaoVia += faixa.getOcupacaoFaixa();
+
+		try {
+			for (Faixa faixa: getFaixas())
+				ocupacaoVia += faixa.getOcupacaoFaixa();
+		}
+		catch (NullPointerException exception) {
+			return 0;
+		}
 		
 		return ocupacaoVia;
 	}

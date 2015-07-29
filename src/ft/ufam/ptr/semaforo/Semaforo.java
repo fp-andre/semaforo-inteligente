@@ -33,6 +33,11 @@ public class Semaforo {
 	public Estado getEstadoAtual() {
 		return this.estadoAtual;
 	}
+	
+	/** Cadastra o semáforo de pedestres desta classe */
+	public void setSemaforoPedestre(SemaforoPedestre pedestre) {
+		addSemaforoListener(pedestre);
+	}
 
 	/** Verifica se o semáforo está aberto */
 	public boolean aberto() {

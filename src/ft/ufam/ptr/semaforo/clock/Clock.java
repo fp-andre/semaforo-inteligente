@@ -72,7 +72,6 @@ public class Clock extends Thread {
 			try { sleep(sleepTime-laps); }
 			catch (InterruptedException exception) { return; }
 			
-			System.out.println();
 		}
 		
 	}

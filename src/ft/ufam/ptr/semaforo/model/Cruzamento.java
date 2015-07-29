@@ -93,7 +93,6 @@ public class Cruzamento implements ClockListener {
 		if (semaforo.aberto())
 			movimentaVeiculos();
 		detectaTransicao();
-		//viaEntrada.imprimeVia();
 		
 		screen.fireFluxoUpdate(viaEntrada.getLocalizacao(), getFluxoVeiculos());
 		screen.fireOcupacaoUpdate(viaEntrada.getLocalizacao(), viaEntrada.getOcupacaoVia());

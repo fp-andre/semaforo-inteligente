@@ -39,11 +39,6 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 		this.simetrico = simetrico;
 	}
 	
-	/** Cadastra o semáforo de pedestres desta classe */
-	public void setSemaforoPedestre(SemaforoPedestre pedestre) {
-		addSemaforoListener(pedestre);
-	}
-	
 	/** Cadastra o semáforo escravo desta classe */
 	public void setSemaforoSlave(SemaforoListener slave) {
 		addSemaforoListener(slave);
@@ -104,12 +99,10 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 				}
 			break;
 			
-			case VERMELHO_INTERMITENTE:
-				System.out.println("Solicitando sincronização");
+			default:
 			break;
 		}
 		
-		imprimeEstadoAtual();
 	}
 	
 	@Override
