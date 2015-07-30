@@ -37,7 +37,6 @@ public class SemaforoPedestre extends Semaforo implements SemaforoListener {
 				
 		}
 		
-		imprimeEstadoAtual();
 	}
 	
 	@Override

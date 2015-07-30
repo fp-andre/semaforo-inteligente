@@ -14,20 +14,26 @@ public class Icone {
 	public static final Icon VERMELHO = getIcon("img/semaforo-vermelho.png");
 	public static final Icon OFF      = getIcon("img/semaforo-off.png"     );
 	
+	public static final int WIDTH  = 165;
+	public static final int HEIGHT = 30;
+	
 	private static Icon getIcon(String path) {
 		String absolutePath = PropertiesManager.getResource(path);
 		
-		BufferedImage img = null;
-		try {
-		    img = ImageIO.read(new File(absolutePath));
-		} catch (IOException e) {
-		    e.printStackTrace();
-		    System.out.println("erroroorior");
-		}
-		
-		Image dimg = img.getScaledInstance(166, 20, Image.SCALE_SMOOTH);
+		Image dimg = getScaledImage(absolutePath);
 		
 		return new ImageIcon(dimg);
+	}
+	
+	private static Image getScaledImage(String absolutePath) {
+		BufferedImage img = null;
+		
+		try { img = ImageIO.read(new File(absolutePath)); }
+		catch (IOException exception) { exception.printStackTrace(); }
+		
+		Image dimg = img.getScaledInstance(WIDTH, HEIGHT, Image.SCALE_SMOOTH);
+		
+		return dimg;
 	}
 	
 }
