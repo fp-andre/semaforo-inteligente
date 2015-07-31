@@ -23,13 +23,13 @@ public class Gerador implements ClockListener {
 	 *  @param taxa - Quantidade de veículos que o gerador deve injetar na via por ciclo de tempo (Clock)
 	 *  @param destino - Destino dos veículos gerados
 	 *  @param via - Via a ser contemplada com o fluxo do gerador */
-	public Gerador(int quantidade, int taxa, Local destino, Via via) {
+	public Gerador(int quantidade, int taxa, Via origem, Local destino) {
 		this.quantidade = quantidade;
 		this.taxa		= taxa;
-		this.origem 	= via.getLocalizacao();
+		this.origem 	= origem.getLocalizacao();
 		this.destino 	= destino;
 		this.random		= new Random();
-		this.via = via;
+		this.via = origem;
 	}
 	
 	/** Verifica se ainda existe fluxo a ser gerado */

@@ -3,11 +3,12 @@ package ft.ufam.ptr.semaforo.graphics;
 import javax.swing.*;
 
 import ft.ufam.ptr.semaforo.*;
+import ft.ufam.ptr.semaforo.graphics.lights.*;
+import ft.ufam.ptr.semaforo.interpreter.Interpreter;
 import ft.ufam.ptr.semaforo.model.*;
 import ft.ufam.ptr.semaforo.utils.*;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.io.*;
 import java.awt.event.ActionEvent;
 
 /** Contém a implementação da interface gráfica principal do sistema.
@@ -20,7 +21,7 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 	private final JPanel painelMaster;
 	private final Simulador simulador;
 	private JLabel labelSemaforo01, labelSemaforo02, labelSemaforo03, labelSemaforo04;
-	private LightsManager manager01, manager02, manager03, manager04;
+	private VehicleLightsManager manager01, manager02, manager03, manager04;
 	private JTextField textOcupacao01, textFluxo01;
 	private JTextField textFluxo02;
 	private JTextField textOcupacao02;
@@ -29,15 +30,51 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 	private JTextField textFluxo04;
 	private JTextField textOcupacao04;
 	private JButton botaoSync, botaoSair;
+	private JTextArea textArea;
 
 	/** Função principal */
 	public static void main(String[] args) {
 		new TelaPrincipal();
 	}
 	
+	private class StdoutMonitor extends OutputStream {
+
+		@Override
+		public void write(int args) throws IOException {
+			write(new byte[] {(byte) args}, 0, 1);
+		}
+		
+		@Override
+		public void write(byte[] charSequence, int offset, int length) throws IOException {
+			String nova = new String(charSequence,offset,length);
+			UpdateText job = new UpdateText(nova);
+			SwingUtilities.invokeLater(job);
+		}
+		
+	}
+	
+	private class UpdateText implements Runnable {
+
+		private final String string;
+		
+		public UpdateText(String string) {
+			this.string = string;
+		}
+		
+		@Override
+		public void run() {
+			textArea.append(string);
+		}
+		
+	}
+	
 	/** Desenha a janela gráfica */
 	public TelaPrincipal() {
 		super("Semáforo Inteligente");
+		
+		StdoutMonitor monitor = new StdoutMonitor();
+		PrintStream stream = new PrintStream(monitor);
+		System.setOut(stream);
 		
 		painelMaster = new JPaintedPanel("img/frente-ufam-novo.jpg");
 		setContentPane(painelMaster);
@@ -45,7 +82,7 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		
 		JPanel painelInfo01 = new JPanel();
 		painelInfo01.setOpaque(false);
-		painelInfo01.setBounds(153, 0, 190, 133);
+		painelInfo01.setBounds(239, 0, 190, 133);
 		painelMaster.add(painelInfo01);
 		painelInfo01.setLayout(null);
 		
@@ -83,7 +120,7 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		JPanel painelInfo02 = new JPanel();
 		painelInfo02.setLayout(null);
 		painelInfo02.setOpaque(false);
-		painelInfo02.setBounds(893, 537, 190, 133);
+		painelInfo02.setBounds(1044, 470, 190, 133);
 		painelMaster.add(painelInfo02);
 		
 		labelSemaforo02 = new JLabel();
@@ -117,7 +154,7 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		JPanel painelInfo03 = new JPanel();
 		painelInfo03.setLayout(null);
 		painelInfo03.setOpaque(false);
-		painelInfo03.setBounds(12, 33, 190, 133);
+		painelInfo03.setBounds(97, 33, 190, 133);
 		painelMaster.add(painelInfo03);
 		
 		labelSemaforo03 = new JLabel();
@@ -151,7 +188,7 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		JPanel painelInfo04 = new JPanel();
 		painelInfo04.setLayout(null);
 		painelInfo04.setOpaque(false);
-		painelInfo04.setBounds(1152, 599, 190, 133);
+		painelInfo04.setBounds(856, 439, 190, 133);
 		painelMaster.add(painelInfo04);
 		
 		labelSemaforo04 = new JLabel();
@@ -181,7 +218,7 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		textOcupacao04.setColumns(10);
 		textOcupacao04.setBounds(35, 40, 36, 19);
 		painelVia04.add(textOcupacao04);
-		botaoSync.setBounds(476, 731, 117, 25);
+		botaoSync.setBounds(427, 566, 117, 25);
 		painelMaster.add(botaoSync);
 		
 		botaoSair = new JButton("Sair");
@@ -192,30 +229,39 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 				dispose();
 			}
 		});
-		botaoSair.setBounds(476, 731, 117, 25);
+		botaoSair.setBounds(427, 566, 117, 25);
 		painelMaster.add(botaoSair);
+		
+		textArea = new JTextArea();
+		textArea.setOpaque(false);
+		textArea.setBounds(1076, 12, 192, 106);
+		painelMaster.add(textArea);
 		
 		buildScreen();
 		
 		simulador = new Simulador(this);
 		inicializaGerenciadores();
+		
+		loadScript(simulador);
+	}
+	
+	private void loadScript(Simulador simulador) {
+		new Interpreter(simulador).start();
 	}
 	
 	private void buildScreen() {
-		setSize(1366,768);
+		setSize(1280,640);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setResizable(false);
-		setUndecorated(true);
-	    setBounds(0,0,getToolkit().getScreenSize().width,getToolkit().getScreenSize().height);
 	    setVisible(true);
 	}
 	
 	private void inicializaGerenciadores() {
-		this.manager01 = new LightsManager(labelSemaforo01);
-		this.manager02 = new LightsManager(labelSemaforo02);
-		this.manager03 = new LightsManager(labelSemaforo03);
-		this.manager04 = new LightsManager(labelSemaforo04);
+		this.manager01 = new VehicleLightsManager(labelSemaforo01);
+		this.manager02 = new VehicleLightsManager(labelSemaforo02);
+		this.manager03 = new VehicleLightsManager(labelSemaforo03);
+		this.manager04 = new VehicleLightsManager(labelSemaforo04);
 	}
 	
 	private class SyncEvent implements ActionListener {

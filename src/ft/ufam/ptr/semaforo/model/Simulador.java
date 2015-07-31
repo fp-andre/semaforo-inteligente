@@ -4,6 +4,7 @@ import java.util.*;
 import ft.ufam.ptr.semaforo.*;
 import ft.ufam.ptr.semaforo.clock.*;
 import ft.ufam.ptr.semaforo.graphics.*;
+import ft.ufam.ptr.semaforo.interpreter.Taxa;
 
 /** Executa a simulação do sistema.
  *  @author Felipe André
@@ -12,10 +13,33 @@ import ft.ufam.ptr.semaforo.graphics.*;
 public class Simulador {
 	
 	private final Random random;
+	private final Clock clock;
 	private SemaforoMaster master_japiim_entrada, master_coroado_entrada;
+	private final ArrayList<Via> listaVias;
+	
+	public void setBaseTempo(int millis) {
+		clock.setBaseTime(millis);
+	}
+	
+	public void criaGerador(int quantidade, Taxa taxa, Local origem, Local destino) {
+		int tx = taxa.getValor();
+		Via via_origem = findViaByID(origem);
+		Gerador gerador = new Gerador(quantidade,tx,via_origem,destino);
+		addGerador(gerador);
+	}
+	
+	private Via findViaByID(Local origem) {
+		for (Via via: listaVias)
+			if (via.getLocalizacao().equals(origem))
+				return via;
+		return null;
+	}
+	
+	private synchronized void addGerador(Gerador gerador) {
+		clock.addClockListener(gerador);
+	}
 	
 	public void scenario(TelaPrincipal screen) {
-		Clock clock = new Clock(1000);
 		
 		Via via_japiim_entrada_campus  = new Via(Local.JAPIIM_ENTRADA_CAMPUS, 10);
 		Via via_entrada_saida_campus   = new Via(Local.ENTRADA_SAIDA_CAMPUS , 10);
@@ -23,6 +47,13 @@ public class Simulador {
 		Via via_entrada_campus		   = new Via(Local.ENTRADA_CAMPUS);
 		Via via_saida_campus		   = new Via(Local.SAIDA_CAMPUS,10);
 		Via via_coroado_entrada_campus = new Via(Local.COROADO_ENTRADA_CAMPUS, 10);
+		
+		listaVias.add(via_coroado_entrada_campus);
+		listaVias.add(via_entrada_campus);
+		listaVias.add(via_entrada_saida_campus);
+		listaVias.add(via_japiim_entrada_campus);
+		listaVias.add(via_saida_campus);
+		listaVias.add(via_saida_campus_coroado);
 		
 		master_japiim_entrada  = new SemaforoMaster(Local.JAPIIM_ENTRADA_CAMPUS );
 		master_coroado_entrada = new SemaforoMaster(Local.COROADO_ENTRADA_CAMPUS);
@@ -98,42 +129,9 @@ public class Simulador {
 	
 	public Simulador(TelaPrincipal screen) {
 		this.random = new Random(System.currentTimeMillis());
+		this.listaVias = new ArrayList<Via>();
+		this.clock = new Clock();
 		scenario(screen);
-	}
-	
-	public void oldMethod(TelaPrincipal screen) {
-		Clock clock = new Clock(500);
-		
-		Via entrada = new Via(Local.JAPIIM_ENTRADA_CAMPUS, 5);
-		Via saida   = new Via(Local.ENTRADA_CAMPUS);
-		
-		SemaforoMaster semaforo1 = new SemaforoMaster(entrada.getLocalizacao());
-		SemaforoMaster semaforo2 = new SemaforoMaster(saida.getLocalizacao());
-		
-		semaforo1.setEstadoVerde();
-		semaforo1.setTempoVerde(5);
-		semaforo1.setSemaforoSimetrico(semaforo2);
-		
-		semaforo2.setTempoVerde(5);
-		semaforo2.setSemaforoSimetrico(semaforo1);
-		
-		semaforo1.addSemaforoListener(screen);
-		semaforo2.addSemaforoListener(screen);
-		
-		Cruzamento crz = new Cruzamento(entrada, semaforo1,screen);
-		
-		crz.insereViaSaida(saida);
-		
-		Gerador gerador = new Gerador(100, 2, Local.ENTRADA_CAMPUS, entrada);
-		
-		clock.addClockListener(semaforo1);
-		clock.addClockListener(semaforo2);
-		
-		clock.addClockListener(gerador);
-		clock.addClockListener(entrada);
-		clock.addClockListener(crz);
-		
-		clock.start();
 	}
 	
 }

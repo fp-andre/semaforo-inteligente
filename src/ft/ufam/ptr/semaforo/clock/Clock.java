@@ -4,22 +4,26 @@ import java.util.ArrayList;
 
 /** Implementa o relógio do sistema.
  *  @author Felipe André
- *  @version 1.0, 15/06/2015 */
+ *  @version 1.5, 30/07/2015 */
 public class Clock extends Thread {
 
 	/* Atributos da classe */
 	private ArrayList<ClockListener> listaListeners;
 	private long ciclos;
-	private final long sleepTime;
+	private long sleepTime;
 	
 	/** Inicializa o clock. Nota: este possui uma contagem de ciclos interna que começa em 1 e é
 	 *  incrementada a cada evento de clock.
 	 *  @see {@link #getCiclos() getCiclos}
 	 *  @param millis - Tempo (em ms) que o Clock deve esperar antes de disparar um evento */
-	public Clock(long millis) {
+	public Clock() {
 		this.listaListeners = new ArrayList<ClockListener>();
-		this.sleepTime = millis;
 		this.ciclos = 1;
+	}
+	
+	/** Inicializa a base de tempo */
+	public void setBaseTime(int millis) {
+		this.sleepTime = millis;
 	}
 	
 	/** Cadastra um novo objeto ouvinte na lista de listeners */
@@ -71,6 +75,8 @@ public class Clock extends Thread {
 			
 			try { sleep(sleepTime-laps); }
 			catch (InterruptedException exception) { return; }
+			
+			System.out.println(getCiclos());
 			
 		}
 		
