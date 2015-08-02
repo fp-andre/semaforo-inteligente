@@ -11,7 +11,7 @@ import ft.ufam.ptr.semaforo.model.*;
  *  @see SemaforoSlave
  *  @author Felipe André
  *  @author Paulo Henrique
- *  @version 1.5, 20/07/2015 */
+ *  @version 2.5, 02/08/2015 */
 public class SemaforoMaster extends Semaforo implements ClockListener {
 
 	/* Variáveis de temporização dos semáforos */
@@ -35,7 +35,8 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 	/* Nome da localização deste semáforo */
 	private final String nome;
 	
-	/** Inicializa as temporizações fixas do semáforo */
+	/** Inicializa as temporizações fixas do semáforo
+	 *  @see Semaforo */
 	public SemaforoMaster(Local local) {
 		super(local);
 		this.faixaTempo = 0;
@@ -80,7 +81,8 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 	
 	/** Verifica se o fluxo de veículos está alto */
 	private boolean fluxoEstaAlto() {
-		return (fluxo >= Fluxo.MEDIO);
+		int razao = (fluxo / faixaTempo);
+		return razao >= Fluxo.MEDIO;
 	}
 	
 	/** Prepara o fechamento do semáforo */

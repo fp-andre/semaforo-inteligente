@@ -69,6 +69,7 @@ public class Semaforo {
 		return local;
 	}
 
+	/** Insere um semáforo na lista de eventos */
 	public void addSemaforoListener(SemaforoListener listener) {
 		if (!listaListeners.contains(listener))
 			listaListeners.add(listener);

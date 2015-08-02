@@ -6,7 +6,7 @@ package ft.ufam.ptr.semaforo;
 public class Tempo {
 
 	/* Conjunto de temporizações */
-	public static final int VERDE = 5;
+	public static final int VERDE = 30;
 	public static final int VERDE_INTERMITENTE = 5;
 	public static final int AMARELO = 3;
 	public static final int AVISO_VERMELHO = 2;

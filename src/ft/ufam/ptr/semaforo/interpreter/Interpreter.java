@@ -2,35 +2,36 @@ package ft.ufam.ptr.semaforo.interpreter;
 
 import java.io.*;
 import ft.ufam.ptr.semaforo.model.*;
-import ft.ufam.ptr.semaforo.utils.*;
 
 /** Implementação do interpretador de configurações do semáforo.
  *  Com este é possível configurar a base de tempo do sistema e
  *  a instanciação dos geradores de fluxo das vias.
  *  @author Felipe André
- *  @version 1.0, 30/07/2015 */
+ *  @version 1.5, 02/08/2015 */
 public class Interpreter extends Thread {
 	
 	/* Atributos da classe */
 	private final Simulador simulador;
 	private final BufferedReader stream;
+	private final File arquivo;
 	
 	/** Inicializa os atributos */
-	public Interpreter(Simulador simulador) {
+	public Interpreter(Simulador simulador, File arquivo) {
 		this.simulador = simulador;
+		this.arquivo = arquivo;
 		this.stream = getArquivoComandos();
 	}
-
+	
 	/** Cria uma stream de leitura de dados a partir de um arquivo */
 	private BufferedReader getArquivoComandos() {
 		BufferedReader str = null;
-		String path = PropertiesManager.getResource("config/script.ssf");
 		
 		try {
-			str = new BufferedReader(new FileReader(path));
+			str = new BufferedReader(new FileReader(arquivo));
 		}
 		catch (Exception exception) {
 			System.err.println("Falha ao abrir o arquivo!");
+			exception.printStackTrace();
 		}
 		
 		return str;
@@ -45,29 +46,35 @@ public class Interpreter extends Thread {
 			while ( (line = stream.readLine()) != null ) {
 				String[] splitted = line.split(" ");
 				String comando = splitted[0];
-				parseCommand(comando, splitted);
+				parseCommand(comando, splitted, line);
 			}
 			stream.close();
 		}
 		
 		catch (IOException exception) {
-			System.err.println("Falha ao abrir o arquivo de configurações!");
+			System.out.println("Falha ao abrir o arquivo de configurações!");
 		}
 		catch (NumberFormatException exception) {
-			System.err.println("Quantidade de Veículos inválida!");
+			System.out.println("Quantidade de Veículos inválida!");
 		}
 		catch (IllegalArgumentException exception) {
-			System.err.println("Via inválida\n" + line);
+			System.out.println("Via inválida\n" + line);
 		}
 		catch (Exception exception) {
-			System.err.println("Comando não reconhecido:\n" + line);
+			System.out.println("Comando não reconhecido:\n" + line);
 		}
 	}
 	
 	/** Faz a seleção dos comandos */
-	private void parseCommand(String comando, String[] args) throws Exception {
+	private void parseCommand(String comando, String[] args, String line) throws Exception {
+		
+		if (comando.startsWith("#"))
+			return;
 		
 		switch (comando) {
+		
+			case "":
+				break;
 		
 			case "baseTempo":
 				setBaseTempo(args);
@@ -78,7 +85,7 @@ public class Interpreter extends Thread {
 			break;
 			
 			default:
-				System.out.println("Comando não reconhecido!");
+				System.out.println("Comando não reconhecido: " + line);
 			break;
 		}
 	}

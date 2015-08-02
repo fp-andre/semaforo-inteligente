@@ -2,7 +2,7 @@ package ft.ufam.ptr.semaforo.graphics.lights;
 
 import javax.swing.*;
 import ft.ufam.ptr.semaforo.*;
-import ft.ufam.ptr.semaforo.clock.Clock;
+import ft.ufam.ptr.semaforo.clock.*;
 
 /** Superclasse do sistema de gerenciamento de efeitos
  *  gráficos dos semáforos de veículos e pedestres.

@@ -11,20 +11,24 @@ import ft.ufam.ptr.semaforo.interpreter.*;
 /** Executa a simulação do sistema.
  *  @author Felipe André
  *  @author Paulo Henrique
- *  @version 4.0, 27/07/2015 */
+ *  @version 4.5, 02/08/2015 */
 public class Simulador {
 	
+	/* Atributos funcionais da classe */
 	private JFrame screen;
-	private final Random random;
 	private final Clock clock;
-	private SemaforoMaster master_japiim_entrada, master_coroado_entrada;
+	private final Random random;
 	private final ArrayList<Via> listaVias;
+	private SemaforoMaster master_japiim_entrada, master_coroado_entrada;
 	
+	/** Atualiza a base de tempo do clock
+	 *  @see Clock */
 	public void setBaseTempo(int millis) {
-		System.out.println("Base de Tempo: " + millis + "s");
+		System.out.println("Base de Tempo: " + millis + "ms");
 		clock.setBaseTime(millis);
 	}
 	
+	/** Cria um gerador e o adiciona ao simulador */
 	public void criaGerador(int quantidade, Taxa taxa, Local origem, Local destino) {
 		int tx = taxa.getValor();
 		Via via_origem = findViaByID(origem);
@@ -34,6 +38,7 @@ public class Simulador {
 		System.out.printf("Gerador de fluxo criado: máximo %d veículos em taxa %s indo de %s para %s\n",quantidade,taxa.name(),origem.name(),destino.name());
 	}
 	
+	/** Recupera uma via da lista pela sua localização */
 	private Via findViaByID(Local origem) {
 		for (Via via: listaVias)
 			if (via.getLocalizacao().equals(origem))
@@ -41,10 +46,12 @@ public class Simulador {
 		return null;
 	}
 	
+	/** Adiciona um gerador à lista de observadores do clock */
 	private synchronized void addGerador(Gerador gerador) {
 		clock.addClockListener(gerador);
 	}
 	
+	/** Instancia o cenário padrão do simulador */
 	public void scenario(TelaPrincipal screen) {
 		
 		Via via_japiim_entrada_campus  = new Via(Local.JAPIIM_ENTRADA_CAMPUS, 10);
@@ -58,17 +65,17 @@ public class Simulador {
 		master_coroado_entrada = new SemaforoMaster(Local.COROADO_ENTRADA_CAMPUS);
 		
 		SemaforoSlave slave_entrada_saida = new SemaforoSlave(Local.ENTRADA_SAIDA_CAMPUS);
-		SemaforoSlave slave_saida_coroado = new SemaforoSlave(Local.SAIDA_CAMPUS_COROADO);
+		SemaforoSlave slave_saida_coroado = new SemaforoSlave(Local.SAIDA_CAMPUS);
 		
 		SemaforoPedestre peds_japiim_entrada   = new SemaforoPedestre(Local.JAPIIM_ENTRADA_CAMPUS);
 		SemaforoPedestre peds_coroado_entrada  = new SemaforoPedestre(Local.COROADO_ENTRADA_CAMPUS);
 		SemaforoPedestre peds_entrada_saida	   = new SemaforoPedestre(Local.ENTRADA_SAIDA_CAMPUS);
-		SemaforoPedestre peds_saida_coroado	   = new SemaforoPedestre(Local.SAIDA_CAMPUS_COROADO);
+		SemaforoPedestre peds_saida_coroado	   = new SemaforoPedestre(Local.SAIDA_CAMPUS);
 		
 		Cruzamento crz_japiim_entrada  = new Cruzamento(via_japiim_entrada_campus , master_japiim_entrada , screen);
 		Cruzamento crz_coroado_entrada = new Cruzamento(via_coroado_entrada_campus, master_coroado_entrada, screen);
 		Cruzamento crz_entrada_saida   = new Cruzamento(via_entrada_saida_campus  , slave_entrada_saida   , screen);
-		Cruzamento crz_saida_coroado   = new Cruzamento(via_saida_campus_coroado  , slave_saida_coroado   , screen);
+		Cruzamento crz_saida_campus    = new Cruzamento(via_saida_campus          , slave_saida_coroado   , screen);
 		
 		master_japiim_entrada .setSemaforoPedestre(peds_coroado_entrada);
 		master_coroado_entrada.setSemaforoPedestre(peds_japiim_entrada );
@@ -84,12 +91,12 @@ public class Simulador {
 		
 		crz_entrada_saida.insereViaSaida(via_saida_campus_coroado);
 		
-		crz_saida_coroado.insereViaSaida(via_saida_campus_coroado);
+		crz_saida_campus .insereViaSaida(via_saida_campus_coroado);
 		
 		clock.addClockListener(crz_japiim_entrada);
 		clock.addClockListener(crz_coroado_entrada);
 		clock.addClockListener(crz_entrada_saida);
-		clock.addClockListener(crz_saida_coroado);
+		clock.addClockListener(crz_saida_campus );
 		
 		clock.addClockListener(master_coroado_entrada);
 		clock.addClockListener(master_japiim_entrada );
@@ -128,15 +135,23 @@ public class Simulador {
 		
 	}
 
+	/** Inicia a simulação do sistema */
 	public void start() {
 		if (clock.semBaseTempo())
 			AlertDialog.erro("Base de Tempo do Simulador","A base de tempo do simulador\nnão está configurada!");
-		else {
+		else if (!clock.isAlive()) {
 			clock.start();
 			screen.setTitle("Semáforo Inteligente - Running");
 		}
 	}
 	
+	/** Encerra a simulação do sistema */
+	public void stop() {
+		clock.interrupt();
+		screen.setTitle("Semáforo Inteligente");
+	}
+	
+	/** Sincroniza os semáforos */
 	public void sincroniza() {
 		if (random.nextBoolean())
 			master_coroado_entrada.setEstadoVerde();
@@ -144,6 +159,7 @@ public class Simulador {
 			master_japiim_entrada .setEstadoVerde();
 	}
 	
+	/** Inicializa o simulador */
 	public Simulador(TelaPrincipal screen) {
 		this.screen = screen;
 		this.random = new Random(System.currentTimeMillis());

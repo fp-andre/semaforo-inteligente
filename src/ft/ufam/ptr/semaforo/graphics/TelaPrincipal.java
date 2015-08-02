@@ -13,16 +13,17 @@ import ft.ufam.ptr.semaforo.graphics.lights.*;
 
 /** Contém a implementação da interface gráfica principal do sistema.
  *  @author Felipe André
- *  @version 1.5, 29/07/2015 */
+ *  @version 7.5, 02/08/2015 */
 public class TelaPrincipal extends JFrame implements ActionListener, ClockListener, SemaforoListener {
 
 	/* Atributos funcionais da classe */
 	private static final long serialVersionUID = 1L;
 	private final JPanel painelMaster;
 	private final Simulador simulador;
+	private static final File DEFAULT = new File(PropertiesManager.getResource("config/default.ssf"));
 	
 	/* Itens de Menu */
-	private JMenuItem menuEditor, menuSair, menuLoadScript, menuInicia, menuSincroniza, menuFastStart, menuSobre;
+	private JMenuItem menuEditor, menuSair, menuLoadScript, menuInicia, menuSincroniza, menuFastStart, menuStop, menuSobre;
 	
 	/* Gerenciadores de Efeitos Gráficos dos Semáforos */
 	private VehicleLightsManager vehicl01, vehicl02, vehicl03, vehicl04;
@@ -44,37 +45,6 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 	/** Função principal */
 	public static void main(String[] args) {
 		new TelaPrincipal();
-	}
-	
-	private class StdoutMonitor extends OutputStream {
-
-		@Override
-		public void write(int args) throws IOException {
-			write(new byte[] {(byte) args}, 0, 1);
-		}
-		
-		@Override
-		public void write(byte[] charSequence, int offset, int length) throws IOException {
-			String nova = new String(charSequence,offset,length);
-			UpdateText job = new UpdateText(nova);
-			SwingUtilities.invokeLater(job);
-		}
-		
-	}
-	
-	private class UpdateText implements Runnable {
-
-		private final String string;
-		
-		public UpdateText(String string) {
-			this.string = string;
-		}
-		
-		@Override
-		public void run() {
-			textArea.append(string);
-		}
-		
 	}
 	
 	/** Desenha a janela gráfica */
@@ -249,7 +219,7 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		textArea.setEditable(false);
 		
 		JScrollPane scroll = new JScrollPane(textArea);
-		scroll.setBounds(975, 12, 293, 106);
+		scroll.setBounds(899, 12, 369, 106);
 		scroll.setOpaque(false);
 		
 		painelMaster.add(scroll);
@@ -272,6 +242,7 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		inicializaGerenciadores();
 	}
 	
+	/** Cria os itens de menu */
 	private void onCreateOptionsMenu() {
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -309,19 +280,26 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		menuFastStart.addActionListener(this);
 		menuSimulacao.add(menuFastStart);
 		
+		JSeparator separator_1 = new JSeparator();
+		menuSimulacao.add(separator_1);
+		
+		menuStop = new JMenuItem("Encerrar Simulação");
+		menuStop.addActionListener(this);
+		menuSimulacao.add(menuStop);
+		
 		JMenu menuAjuda = new JMenu("Ajuda");
 		menuBar.add(menuAjuda);
 		
-		menuSobre = new JMenu("Sobre");
+		menuSobre = new JMenuItem("Sobre");
 		menuSobre.addActionListener(this);
 		menuAjuda.add(menuSobre);
 	}
 	
-	private void loadScript(Simulador simulador) {
-		new Interpreter(simulador).start();
-	}
-	
+	/** Organiza a interface gráfica */
 	private void buildScreen() {
+		setFocusable(true);
+		addKeyListener(new HotKey());
+		
 		setSize(1280,680);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -329,6 +307,7 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 	    setVisible(true);
 	}
 	
+	/** Inicializa os gerenciadores de efeitos gráficos dos semáforos */
 	private void inicializaGerenciadores() {
 		this.vehicl01 = new VehicleLightsManager(labelVeiculo01);
 		this.vehicl02 = new VehicleLightsManager(labelVeiculo02);
@@ -341,6 +320,9 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		this.walker04 = new WalkerLightsManager(labelPedestre04);
 	}
 	
+	/************** Redireciona os Eventos aos seus Respectivos Elementos Gráficos ***************/
+	
+	/** Atualiza as informações de fluxo */
 	public void fireFluxoUpdate(Local chave, int valor) {
 		
 		final String texto = String.valueOf(valor);
@@ -351,39 +333,40 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 			break;
 			
 			case ENTRADA_SAIDA_CAMPUS:
-				fireTextFieldUpdate(textFluxo01, texto);
-			break;
-			
-			case COROADO_ENTRADA_CAMPUS:
 				fireTextFieldUpdate(textFluxo03, texto);
 			break;
 			
-			case SAIDA_CAMPUS_COROADO:
+			case COROADO_ENTRADA_CAMPUS:
 				fireTextFieldUpdate(textFluxo04, texto);
 			break;
 			
-			default:
+			case SAIDA_CAMPUS:
+				fireTextFieldUpdate(textFluxo01, texto);
 			break;
+			
+			default:
+				break;
 		}
 	}
 	
+	/** Atualiza os semáforos de veículos */
 	private void fireSemaforoVeiculoUpdate(Local chave, Estado atual) {
 		
 		switch (chave) {
 			case JAPIIM_ENTRADA_CAMPUS:
-				vehicl01.changeState(atual);
-				break;
-		
-			case ENTRADA_SAIDA_CAMPUS:
 				vehicl02.changeState(atual);
 				break;
 		
-			case COROADO_ENTRADA_CAMPUS:
+			case ENTRADA_SAIDA_CAMPUS:
 				vehicl03.changeState(atual);
 				break;
 		
-			case SAIDA_CAMPUS_COROADO:
+			case COROADO_ENTRADA_CAMPUS:
 				vehicl04.changeState(atual);
+				break;
+		
+			case SAIDA_CAMPUS:
+				vehicl01.changeState(atual);
 				break;
 		
 			default:
@@ -391,23 +374,24 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		}
 	}
 	
+	/** Atualiza os semáforos de pedestres */
 	private void fireSemaforoPedestreUpdate(Local chave, Estado atual) {
 		
 		switch (chave) {
 			case JAPIIM_ENTRADA_CAMPUS:
-				walker01.changeState(atual);
-				break;
-		
-			case ENTRADA_SAIDA_CAMPUS:
 				walker02.changeState(atual);
 				break;
 		
-			case COROADO_ENTRADA_CAMPUS:
+			case ENTRADA_SAIDA_CAMPUS:
 				walker03.changeState(atual);
 				break;
 		
-			case SAIDA_CAMPUS_COROADO:
+			case COROADO_ENTRADA_CAMPUS:
 				walker04.changeState(atual);
+				break;
+		
+			case SAIDA_CAMPUS:
+				walker01.changeState(atual);
 				break;
 		
 			default:
@@ -415,6 +399,7 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		}
 	}
 	
+	/** Atualiza as ocupações das vias */
 	public void fireOcupacaoUpdate(Local chave, int valor) {
 		
 		final String texto = String.valueOf(valor);
@@ -425,44 +410,85 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 				break;
 		
 			case ENTRADA_SAIDA_CAMPUS:
-				fireTextFieldUpdate(textOcupacao01, texto);
-				break;
-		
-			case COROADO_ENTRADA_CAMPUS:
 				fireTextFieldUpdate(textOcupacao03, texto);
 				break;
 		
-			case SAIDA_CAMPUS_COROADO:
+			case COROADO_ENTRADA_CAMPUS:
 				fireTextFieldUpdate(textOcupacao04, texto);
+				break;
+		
+			case SAIDA_CAMPUS:
+				fireTextFieldUpdate(textOcupacao01, texto);
 				break;
 		
 			default:
 				break;
-	}
+		}
 	}
 	
+	/********************** Bloco de Tratamento de Efeitos Gráficos **************************/
+	
+	/** Atualiza os campos de texto da interface gráfica */
 	public void fireTextFieldUpdate(JTextField key, String value) {
-		GraphicsUpdater thread = new GraphicsUpdater(key, value);
-		SwingUtilities.invokeLater(thread);
+		GraphicsUpdater job = new GraphicsUpdater(key, value);
+		SwingUtilities.invokeLater(job);
 	}
 	
-	private class GraphicsUpdater implements Runnable {
-
-		private final JTextField textField;
-		private final String value;
-		
-		public GraphicsUpdater(JTextField textField, String value) {
-			this.textField = textField;
-			this.value = value;
-		}
-		
-		@Override
-		public void run() {
-			textField.setText(value);
-		}
-		
+	/** Sincroniza os semáforos */
+	private void sincronizaSemaforos() {
+		simulador.sincroniza();
 	}
-
+	
+	/** Inicia a simulação */
+	private void iniciaSimulacao() {
+		simulador.start();
+	}
+	
+	/** Carrega o arquivo de scripts */
+	private void carregaScript() {
+		File arquivo = FileChooserHelper.dialog(this,false);
+		runInterpreter(simulador, arquivo);
+	}
+	
+	/** Inicia o interpretador de comandos */
+	private void runInterpreter(Simulador simulador, File arquivo) {
+		if (arquivo != null)
+			new Interpreter(simulador,arquivo).start();
+	}
+	
+	/** Implementa um início rápido da simulação */
+	private void fastStart() {
+		runInterpreter(simulador, DEFAULT);
+		sincronizaSemaforos();
+		iniciaSimulacao();
+	}
+	
+	/** Encerra a simulação */
+	private void stop() {
+		simulador.stop();
+	}
+	
+	/** Imprime informações legais */
+	private void about() {
+		String texto = " -> Semáforo Inteligente <-\n"
+					 + "Desenvolvido por: Felipe André e Paulo Henrique\n"
+					 + "sob orientação do Prof. André Cavalcante\n"
+					 + "na disciplina Programação em Tempo Real - FTL066\n"
+					 + "ofertada pelo Departamento de Eletrônica e Computação - DECOM\n"
+					 + "da Universidade Federal do Amazonas - UFAM";
+		AlertDialog.informativo("Sobre", texto);
+	}
+	
+	/******************************** Overrides **********************************************/
+	
+	/** Atualização dos ciclos de clock */
+	@Override
+	public void evento(ClockEvent event) {
+		long ciclos = ((Clock) event.getSource()).getCiclos();
+		UpdateCiclo job = new UpdateCiclo(ciclos);
+		SwingUtilities.invokeLater(job);
+	}
+	
 	@Override
 	public void onStateChange(SemaforoEvent event) {
 		Semaforo semaforo = (Semaforo) event.getSource();
@@ -474,24 +500,6 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 			fireSemaforoPedestreUpdate(local, atual);
 		else
 			fireSemaforoVeiculoUpdate (local, atual);
-	}
-
-	private void sincronizaSemaforos() {
-		simulador.sincroniza();
-	}
-	
-	private void iniciaSimulacao() {
-		simulador.start();
-	}
-	
-	private void carregaScript() {
-		loadScript(simulador);
-	}
-	
-	private void fastStart() {
-		carregaScript();
-		sincronizaSemaforos();
-		iniciaSimulacao();
 	}
 	
 	/** Tratamento de eventos de menu */
@@ -506,7 +514,7 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 			iniciaSimulacao();
 		
 		else if (source == menuEditor)
-			new EditorScript(new File(PropertiesManager.getResource("config/script.ssf")));
+			new EditorScript();
 		
 		else if (source == menuLoadScript)
 			carregaScript();
@@ -514,21 +522,56 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		else if (source == menuFastStart)
 			fastStart();
 		
+		else if (source == menuStop)
+			stop();
+		
+		else if (source == menuSobre)
+			about();
+		
 		else if (source == menuSair)
 			dispose();
 	}
 
-	@Override
-	public void evento(ClockEvent event) {
-		long ciclos = ((Clock) event.getSource()).getCiclos();
-		UpdateCiclo job = new UpdateCiclo(ciclos);
-		SwingUtilities.invokeLater(job);
+	/******************** Classes Auxiliares aos Eventos da Interface Gráfica ****************/
+	
+	/** Fecha a janela gráfica ao pressionar a tecla Q */
+	private class HotKey extends KeyAdapter {
+		
+		@Override
+		public void keyPressed(KeyEvent event) {
+			if (event.getKeyCode() == KeyEvent.VK_Q)
+				dispose();
+		}
+		
 	}
 	
+	/** Atualiza os campos de texto da interface gráfica */
+	private class GraphicsUpdater implements Runnable {
+
+		/* Atributos funcionais da classe */
+		private final JTextField textField;
+		private final String value;
+		
+		/** Inicializa os argumentos */
+		public GraphicsUpdater(JTextField textField, String value) {
+			this.textField = textField;
+			this.value = value;
+		}
+		
+		@Override
+		public void run() {
+			textField.setText(value);
+		}
+		
+	}
+	
+	/** Atualiza os ciclos de clock na interface gráfica */
 	private class UpdateCiclo implements Runnable {
 
+		/** Informação dos ciclos */
 		private String ciclos;
 		
+		/** Apenas faz as adaptações necessárias */
 		public UpdateCiclo(long ciclos) {
 			this.ciclos = Long.toString(ciclos);
 		}
@@ -539,4 +582,40 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		}
 		
 	}
+	
+	/** Redireciona o ponteiro stdout para a interface gráfica */
+	private class StdoutMonitor extends OutputStream {
+
+		@Override
+		public void write(int args) throws IOException {
+			write(new byte[] {(byte) args}, 0, 1);
+		}
+		
+		@Override
+		public void write(byte[] charSequence, int offset, int length) throws IOException {
+			String nova = new String(charSequence,offset,length);
+			UpdateText job = new UpdateText(nova);
+			SwingUtilities.invokeLater(job);
+		}
+		
+	}
+	
+	/** Adiciona uma mensagem à área de texto do swing */
+	private class UpdateText implements Runnable {
+
+		/** Mensagem a ser exibida */
+		private final String string;
+		
+		/** Apenas setando  */
+		public UpdateText(String string) {
+			this.string = string;
+		}
+		
+		@Override
+		public void run() {
+			textArea.append(string);
+		}
+		
+	}
+	
 }

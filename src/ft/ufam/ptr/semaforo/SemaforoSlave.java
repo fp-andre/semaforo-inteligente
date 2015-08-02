@@ -11,6 +11,8 @@ import ft.ufam.ptr.semaforo.model.Local;
  *  @version 1.0, 15/07/2015 */
 public class SemaforoSlave extends Semaforo implements SemaforoListener {
 
+	/** Apenas repassa atributos ao pai
+	 *  @see Semaforo */
 	public SemaforoSlave(Local local) {
 		super(local);
 	}

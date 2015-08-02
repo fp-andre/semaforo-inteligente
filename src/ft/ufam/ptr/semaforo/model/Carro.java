@@ -4,11 +4,11 @@ package ft.ufam.ptr.semaforo.model;
  *  @see Veiculo
  *  @author Felipe André
  *  @author Paulo Henrique
- *  @version 2.5, 14/07/2015 */
+ *  @version 3.0, 02/08/2015 */
 public class Carro implements Veiculo {
 
 	/* Atributos da classe */
-	private final Local origem, destino;
+	private Local origem, destino;
 	
 	/** Instancia um objeto Carro.
 	 *  @param origem - Constante da via de origem do veículo
@@ -27,6 +27,21 @@ public class Carro implements Veiculo {
 	@Override
 	public Local getDestino() {
 		return destino;
+	}
+
+	@Override
+	public void setOrigem(Local origem) {
+		this.origem = origem;
+	}
+
+	@Override
+	public void setDestino(Local destino) {
+		this.destino = destino;
+	}
+
+	@Override
+	public void printInfos() {
+		System.err.println("Origem: " + origem + " - Destino: " + destino);
 	}
 
 }

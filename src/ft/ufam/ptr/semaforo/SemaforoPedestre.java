@@ -9,6 +9,8 @@ import ft.ufam.ptr.semaforo.model.*;
  *  @version 1.0, 20/07/2015 */
 public class SemaforoPedestre extends Semaforo implements SemaforoListener {
 
+	/** Apenas repassa atributos ao pai
+	 *  @see Semaforo */
 	public SemaforoPedestre(Local local) {
 		super(local);
 	}

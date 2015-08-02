@@ -129,6 +129,11 @@ public class Via implements ClockListener {
 		if (localizacao.isApenasConsumidora())
 			return true;
 		
+		/** Mudança de parâmetros do veículo */
+		veiculo.setOrigem(localizacao);
+		if (localizacao.equals(Local.ENTRADA_SAIDA_CAMPUS))
+			veiculo.setDestino(Local.SAIDA_CAMPUS_COROADO);
+		
 		if (hashmap.get(faixaPreferencial).temEspaco()) {
 			hashmap.get(faixaPreferencial).insereVeiculo(veiculo);
 			return true;
