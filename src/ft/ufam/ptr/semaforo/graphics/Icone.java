@@ -19,10 +19,10 @@ public class Icone {
 		public static final Dimension BOUNDS = new Dimension(165,30);
 		
 		/* Arquivos com as imagens */
-		public static final Icon VERDE    = getIcon("img/semaforo-verde.png"   );
-		public static final Icon AMARELO  = getIcon("img/semaforo-amarelo.png" );
-		public static final Icon VERMELHO = getIcon("img/semaforo-vermelho.png");
-		public static final Icon OFF      = getIcon("img/semaforo-off.png"     );
+		public static final Icon VERDE    = getIcon("img/semaforo-verde.png"   , BOUNDS);
+		public static final Icon AMARELO  = getIcon("img/semaforo-amarelo.png" , BOUNDS);
+		public static final Icon VERMELHO = getIcon("img/semaforo-vermelho.png", BOUNDS);
+		public static final Icon OFF      = getIcon("img/semaforo-off.png"     , BOUNDS);
 		
 	}
 	
@@ -30,12 +30,12 @@ public class Icone {
 	public static class Pedestre {
 		
 		/* Dimensões do JLabel */
-		public static final Dimension BOUNDS = new Dimension(165,30);
+		public static final Dimension BOUNDS = new Dimension(115,30);
 		
 		/* Arquivos com as imagens */
-		public static final Icon VERDE    = getIcon("img/pedestre-verde.png"   );
-		public static final Icon VERMELHO = getIcon("img/pedestre-vermelho.png");
-		public static final Icon OFF      = getIcon("img/pedestre-off.png"     );
+		public static final Icon VERDE    = getIcon("img/pedestre-verde.png"   , BOUNDS);
+		public static final Icon VERMELHO = getIcon("img/pedestre-vermelho.png", BOUNDS);
+		public static final Icon OFF      = getIcon("img/pedestre-off.png"     , BOUNDS);
 		
 	}
 	
@@ -52,10 +52,10 @@ public class Icone {
 	}
 	
 	/** Carrega uma imagem */
-	private static Icon getIcon(String path) {
+	private static Icon getIcon(String path, Dimension dimensao) {
 		String absolutePath = PropertiesManager.getResource(path);
 		
-		Image scaled = getScaledImage(absolutePath, Veiculo.BOUNDS);
+		Image scaled = getScaledImage(absolutePath, dimensao);
 		
 		return new ImageIcon(scaled);
 	}

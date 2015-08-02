@@ -9,7 +9,7 @@ import ft.ufam.ptr.semaforo.utils.*;
 /** Implementação de um editor de texto em modo gráfico.
  *  Útil para a edição dos arquivos de configuração.
  *  @author Felipe André
- *  @version 1.0, 30/07/2015 */
+ *  @version 1.5, 01/08/2015 */
 public class EditorScript extends JFrame implements ActionListener {
 
 	/* Atributos da classe */
@@ -66,7 +66,7 @@ public class EditorScript extends JFrame implements ActionListener {
 			BufferedReader stream = new BufferedReader(new FileReader(arquivo));
 			
 			while ((line = stream.readLine()) != null)
-				textArea.append(line);
+				textArea.append(line + "\n");
 			
 			stream.close();
 		}

@@ -12,6 +12,9 @@ public class Clock extends Thread {
 	private long ciclos;
 	private long sleepTime;
 	
+	/* gambiarra, hehehe */
+	public static int SLEEP_TIME; 
+	
 	/** Inicializa o clock. Nota: este possui uma contagem de ciclos interna que começa em 1 e é
 	 *  incrementada a cada evento de clock.
 	 *  @see {@link #getCiclos() getCiclos}
@@ -19,11 +22,18 @@ public class Clock extends Thread {
 	public Clock() {
 		this.listaListeners = new ArrayList<ClockListener>();
 		this.ciclos = 1;
+		this.sleepTime = 0;
 	}
 	
 	/** Inicializa a base de tempo */
 	public void setBaseTime(int millis) {
 		this.sleepTime = millis;
+		Clock.SLEEP_TIME = millis;
+	}
+	
+	/** Verifica se a base de tempo não foi configurada */
+	public boolean semBaseTempo() {
+		return (sleepTime == 0);
 	}
 	
 	/** Cadastra um novo objeto ouvinte na lista de listeners */
@@ -75,8 +85,6 @@ public class Clock extends Thread {
 			
 			try { sleep(sleepTime-laps); }
 			catch (InterruptedException exception) { return; }
-			
-			System.out.println(getCiclos());
 			
 		}
 		

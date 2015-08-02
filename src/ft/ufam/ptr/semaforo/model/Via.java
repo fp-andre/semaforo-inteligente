@@ -10,7 +10,7 @@ import ft.ufam.ptr.semaforo.clock.*;
  *  @version 2.0, 15/07/2015 */
 public class Via implements ClockListener {
 
-	/** Atributos da classe */
+	/* Atributos da classe */
 	private final Local localizacao;
 	private final int qtdFaixas;
 	private HashMap<Integer,Faixa> hashmap;

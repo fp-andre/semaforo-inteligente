@@ -16,9 +16,15 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 
 	/* Variáveis de temporização dos semáforos */
 	private int tempoVerde;
+	private int faixaTempo;
+	private int fluxo;
 	private final int tempoVerdeIT;
 	private final int tempoAmarelo;
 	private final int tempoAvisoVermelho;
+	
+	/* Quantidade máxima de faixas de tempo que o
+	 * semáforo pode permanecer em estado verde */
+	private static final int FAIXA_TEMPO_MAX = 3;
 	
 	/** Muito útil no estado {@link #autoControle() VERMELHO} */
 	private boolean wait;
@@ -26,12 +32,18 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 	/* Semáforos do sistema */
 	private SemaforoMaster simetrico;
 	
+	/* Nome da localização deste semáforo */
+	private final String nome;
+	
 	/** Inicializa as temporizações fixas do semáforo */
 	public SemaforoMaster(Local local) {
 		super(local);
+		this.faixaTempo = 0;
 		this.tempoVerdeIT = Tempo.VERDE_INTERMITENTE;
 		this.tempoAmarelo = Tempo.AMARELO;
 		this.tempoAvisoVermelho = Tempo.AVISO_VERMELHO;
+		this.nome = getLocalizacao().getInfos();
+		setTempoVerde();
 	}
 	
 	/** Cadastra o semáforo simétrico desta classe */
@@ -46,14 +58,55 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 	
 	/** Modifica o tempo máximo (dado em ciclos) que
 	 *  o semáforo pode permanecer no estado verde  */
-	public void setTempoVerde(int ciclos) {
-		this.tempoVerde = ciclos;
+	private void setTempoVerde() {
+		this.tempoVerde = Tempo.VERDE;
 	}
 	
-	/** Modifica o estado atual do semáforo para verde */
+	/** Verifica se a quantidade máxima de faixas de tempo que
+	 *  o semáforo pode permanecer em verde foi ultrapassada  */
+	private boolean IStillCanStayGreen() {
+		return (faixaTempo < FAIXA_TEMPO_MAX);
+	}
+	
+	/** Incrementa o contador de faixa de tempo */
+	private void incrementaFaixaTempo() {
+		faixaTempo++;
+	}
+	
+	/** Reinicia o contador de faixa de tempo */
+	private void reiniciaFaixaTempo() {
+		faixaTempo = 0;
+	}
+	
+	/** Verifica se o fluxo de veículos está alto */
+	private boolean fluxoEstaAlto() {
+		return (fluxo >= Fluxo.MEDIO);
+	}
+	
+	/** Prepara o fechamento do semáforo */
+	private void preparaFechamentoSemaforo() {
+		reiniciaFaixaTempo();
+		setEstadoAtual(Estado.VERDE_INTERMITENTE);
+	}
+	
+	/** Muda o estado do semáforo para vermelho e
+	 *  sinaliza aos seus dependentes este evento */
+	public void setEstadoVermelho() {
+		reiniciaCiclos();
+		setEstadoAtual(Estado.VERMELHO);
+		disparaEventos();
+	}
+	
+	/** Muda o estado do semáforo para verde e
+	 *  sinaliza aos seus dependentes este evento */
 	public void setEstadoVerde() {
 		reiniciaCiclos();
 		setEstadoAtual(Estado.VERDE);
+		
+		System.out.printf("Semáforo \"%s\" é o líder!\n",getLocalizacao().getInfos());
+		simetrico.setEstadoVermelho();
+		
+		disparaEventos();
 		this.wait = true;
 	}
 	
@@ -71,11 +124,9 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 		switch (estadoAtual) {
 		
 			case VERDE:
-				simetrico.setEstadoAtual(Estado.VERMELHO);
-				if (tempoEsgotado(tempoVerde)) {
-					setEstadoAtual(Estado.VERDE_INTERMITENTE);
-					reiniciaCiclos();
-				}
+				simetrico.setEstadoVermelho();
+				if (tempoEsgotado(tempoVerde))
+					inteligencia();
 			break;
 				
 			case VERDE_INTERMITENTE:
@@ -103,6 +154,41 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 			break;
 		}
 		
+	}
+	
+	/** Atualiza o fluxo de veículos */
+	public void setFluxo(int fluxo) {
+		this.fluxo = fluxo;
+	}
+	
+	/** Adia o estado verde em mais uma faixa de tempo */
+	private void reiniciaTempoVerde() {
+		String local = getLocalizacao().getInfos();
+		int cc = Tempo.VERDE;
+		System.out.printf("Como o fluxo está alto, o semáforo \"%s\" permanecerá mais um período de %d ciclos em estado verde!\n",local,cc);
+		setTempoVerde();
+	}
+	
+	/** Implementação da inteligência do semáforo */
+	private void inteligencia() {
+		
+		incrementaFaixaTempo();
+		
+		if (IStillCanStayGreen()) {
+			
+			if (fluxoEstaAlto())
+				reiniciaTempoVerde();
+			else {
+				System.out.printf("Como o fluxo está normal, o semáforo \"%s\" irá se preparar para fechar!\n",nome);
+				preparaFechamentoSemaforo();
+			}
+		}
+		else {
+			System.out.printf("Semáforo \"%s\" já passou muito tempo no estado verde, preparando para fechar!\n",nome);
+			preparaFechamentoSemaforo();
+		}
+		
+		reiniciaCiclos();
 	}
 	
 	@Override

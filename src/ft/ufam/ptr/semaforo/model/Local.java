@@ -54,7 +54,7 @@ public enum Local {
 	
 	/** Retorna informações completas sobre o local */
 	public String getInfos() {
-		return "Nome da Via: " + nome + "\nOrigem: " + origem + "\nSentido: " + sentido;
+		return origem + "-" + sentido;
 	}
 	
 }

@@ -1,36 +1,45 @@
 package ft.ufam.ptr.semaforo.graphics;
 
+import java.io.*;
+import java.awt.*;
 import javax.swing.*;
-
+import java.awt.event.*;
 import ft.ufam.ptr.semaforo.*;
-import ft.ufam.ptr.semaforo.graphics.lights.*;
-import ft.ufam.ptr.semaforo.interpreter.Interpreter;
+import ft.ufam.ptr.semaforo.clock.*;
 import ft.ufam.ptr.semaforo.model.*;
 import ft.ufam.ptr.semaforo.utils.*;
-import java.awt.event.ActionListener;
-import java.io.*;
-import java.awt.event.ActionEvent;
+import ft.ufam.ptr.semaforo.interpreter.*;
+import ft.ufam.ptr.semaforo.graphics.lights.*;
 
 /** Contém a implementação da interface gráfica principal do sistema.
  *  @author Felipe André
  *  @version 1.5, 29/07/2015 */
-public class TelaPrincipal extends JFrame implements SemaforoListener {
+public class TelaPrincipal extends JFrame implements ActionListener, ClockListener, SemaforoListener {
 
-	/* Atributos da classe */
+	/* Atributos funcionais da classe */
 	private static final long serialVersionUID = 1L;
 	private final JPanel painelMaster;
 	private final Simulador simulador;
-	private JLabel labelSemaforo01, labelSemaforo02, labelSemaforo03, labelSemaforo04;
-	private VehicleLightsManager manager01, manager02, manager03, manager04;
-	private JTextField textOcupacao01, textFluxo01;
-	private JTextField textFluxo02;
-	private JTextField textOcupacao02;
-	private JTextField textFluxo03;
-	private JTextField textOcupacao03;
-	private JTextField textFluxo04;
-	private JTextField textOcupacao04;
-	private JButton botaoSync, botaoSair;
+	
+	/* Itens de Menu */
+	private JMenuItem menuEditor, menuSair, menuLoadScript, menuInicia, menuSincroniza, menuFastStart, menuSobre;
+	
+	/* Gerenciadores de Efeitos Gráficos dos Semáforos */
+	private VehicleLightsManager vehicl01, vehicl02, vehicl03, vehicl04;
+	private WalkerLightsManager  walker01, walker02, walker03, walker04;
+	
+	/* Semáforos de Veículos e Pedestres */
+	private JLabel labelVeiculo01 , labelVeiculo02 , labelVeiculo03 , labelVeiculo04 ;
+	private JLabel labelPedestre01, labelPedestre02, labelPedestre03, labelPedestre04;
+	
+	/* Informações das caixas de texto */
+	private JTextField textOcupacao01, textOcupacao02, textOcupacao03, textOcupacao04;
+	private JTextField textFluxo01, textFluxo02, textFluxo03, textFluxo04;
 	private JTextArea textArea;
+	
+	/* Informações dos Ciclos de Clock */
+	private JLabel labelCiclos, textCiclos;
+	private JSeparator separator;
 
 	/** Função principal */
 	public static void main(String[] args) {
@@ -72,6 +81,10 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 	public TelaPrincipal() {
 		super("Semáforo Inteligente");
 		
+		onCreateOptionsMenu();
+		
+		Font  fonte = GraphicsHelper.getFont();
+		
 		StdoutMonitor monitor = new StdoutMonitor();
 		PrintStream stream = new PrintStream(monitor);
 		System.setOut(stream);
@@ -82,13 +95,17 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		
 		JPanel painelInfo01 = new JPanel();
 		painelInfo01.setOpaque(false);
-		painelInfo01.setBounds(239, 0, 190, 133);
+		painelInfo01.setBounds(239, 0, 190, 183);
 		painelMaster.add(painelInfo01);
 		painelInfo01.setLayout(null);
 		
-		labelSemaforo01 = new JLabel();
-		labelSemaforo01.setBounds(12, 95, 165, 30);
-		painelInfo01.add(labelSemaforo01);
+		labelVeiculo01 = new JLabel(Icone.Veiculo.OFF);
+		labelVeiculo01.setBounds(12, 95, 165, 30);
+		painelInfo01.add(labelVeiculo01);
+		
+		labelPedestre01 = new JLabel(Icone.Pedestre.OFF);
+		labelPedestre01.setBounds(40, 137, 115, 30);
+		painelInfo01.add(labelPedestre01);
 		
 		JPanel painelVia01 = new JPanel();
 		painelVia01.setBorder(GraphicsHelper.getTitledBorder("Via"));
@@ -114,18 +131,19 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		textOcupacao01.setBounds(35, 40, 36, 19);
 		painelVia01.add(textOcupacao01);
 		
-		botaoSync = new JButton("Sync");
-		botaoSync.addActionListener(new SyncEvent());
-		
 		JPanel painelInfo02 = new JPanel();
 		painelInfo02.setLayout(null);
 		painelInfo02.setOpaque(false);
-		painelInfo02.setBounds(1044, 470, 190, 133);
+		painelInfo02.setBounds(1045, 414, 190, 183);
 		painelMaster.add(painelInfo02);
 		
-		labelSemaforo02 = new JLabel();
-		labelSemaforo02.setBounds(12, 95, 165, 30);
-		painelInfo02.add(labelSemaforo02);
+		labelVeiculo02 = new JLabel(Icone.Veiculo.OFF);
+		labelVeiculo02.setBounds(12, 95, 165, 30);
+		painelInfo02.add(labelVeiculo02);
+		
+		labelPedestre02 = new JLabel(Icone.Pedestre.OFF);
+		labelPedestre02.setBounds(40, 141, 115, 30);
+		painelInfo02.add(labelPedestre02);
 		
 		JPanel painelVia02 = new JPanel();
 		painelVia02.setLayout(null);
@@ -154,12 +172,16 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		JPanel painelInfo03 = new JPanel();
 		painelInfo03.setLayout(null);
 		painelInfo03.setOpaque(false);
-		painelInfo03.setBounds(97, 33, 190, 133);
+		painelInfo03.setBounds(97, 33, 190, 183);
 		painelMaster.add(painelInfo03);
 		
-		labelSemaforo03 = new JLabel();
-		labelSemaforo03.setBounds(12, 95, 165, 30);
-		painelInfo03.add(labelSemaforo03);
+		labelVeiculo03 = new JLabel(Icone.Veiculo.OFF);
+		labelVeiculo03.setBounds(12, 95, 165, 30);
+		painelInfo03.add(labelVeiculo03);
+		
+		labelPedestre03 = new JLabel(Icone.Pedestre.OFF);
+		labelPedestre03.setBounds(40, 137, 115, 30);
+		painelInfo03.add(labelPedestre03);
 		
 		JPanel painelVia03 = new JPanel();
 		painelVia03.setLayout(null);
@@ -188,12 +210,16 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		JPanel painelInfo04 = new JPanel();
 		painelInfo04.setLayout(null);
 		painelInfo04.setOpaque(false);
-		painelInfo04.setBounds(856, 439, 190, 133);
+		painelInfo04.setBounds(855, 414, 190, 183);
 		painelMaster.add(painelInfo04);
 		
-		labelSemaforo04 = new JLabel();
-		labelSemaforo04.setBounds(12, 95, 165, 30);
-		painelInfo04.add(labelSemaforo04);
+		labelVeiculo04 = new JLabel(Icone.Veiculo.OFF);
+		labelVeiculo04.setBounds(12, 95, 165, 30);
+		painelInfo04.add(labelVeiculo04);
+		
+		labelPedestre04 = new JLabel(Icone.Pedestre.OFF);
+		labelPedestre04.setBounds(40, 141, 115, 30);
+		painelInfo04.add(labelPedestre04);
 		
 		JPanel painelVia04 = new JPanel();
 		painelVia04.setLayout(null);
@@ -218,31 +244,77 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		textOcupacao04.setColumns(10);
 		textOcupacao04.setBounds(35, 40, 36, 19);
 		painelVia04.add(textOcupacao04);
-		botaoSync.setBounds(427, 566, 117, 25);
-		painelMaster.add(botaoSync);
-		
-		botaoSair = new JButton("Sair");
-		botaoSair.setVisible(false);
-		botaoSair.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				dispose();
-			}
-		});
-		botaoSair.setBounds(427, 566, 117, 25);
-		painelMaster.add(botaoSair);
 		
 		textArea = new JTextArea();
-		textArea.setOpaque(false);
-		textArea.setBounds(1076, 12, 192, 106);
-		painelMaster.add(textArea);
+		textArea.setEditable(false);
+		
+		JScrollPane scroll = new JScrollPane(textArea);
+		scroll.setBounds(975, 12, 293, 106);
+		scroll.setOpaque(false);
+		
+		painelMaster.add(scroll);
+		
+		labelCiclos = new JLabel("Ciclos:");
+		labelCiclos.setForeground(Color.WHITE);
+		labelCiclos.setFont(fonte);
+		labelCiclos.setBounds(1104, 130, 62, 15);
+		painelMaster.add(labelCiclos);
+		
+		textCiclos = new JLabel("0");
+		textCiclos.setFont(fonte);
+		textCiclos.setForeground(Color.WHITE);
+		textCiclos.setBounds(1165, 130, 70, 15);
+		painelMaster.add(textCiclos);
 		
 		buildScreen();
 		
 		simulador = new Simulador(this);
 		inicializaGerenciadores();
+	}
+	
+	private void onCreateOptionsMenu() {
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
 		
-		loadScript(simulador);
+		JMenu menuArquivo = new JMenu("Arquivo");
+		menuBar.add(menuArquivo);
+		
+		menuEditor = new JMenuItem("Editor de Script");
+		menuEditor.addActionListener(this);
+		menuArquivo.add(menuEditor);
+		
+		menuSair = new JMenuItem("Sair");
+		menuSair.addActionListener(this);
+		menuArquivo.add(menuSair);
+		
+		JMenu menuSimulacao = new JMenu("Simulação");
+		menuBar.add(menuSimulacao);
+		
+		menuLoadScript = new JMenuItem("Carregar Script");
+		menuLoadScript.addActionListener(this);
+		menuSimulacao.add(menuLoadScript);
+		
+		menuInicia = new JMenuItem("Iniciar Simulação");
+		menuInicia.addActionListener(this);
+		menuSimulacao.add(menuInicia);
+		
+		menuSincroniza = new JMenuItem("Sincronizar Semáforos");
+		menuSincroniza.addActionListener(this);
+		menuSimulacao.add(menuSincroniza);
+		
+		separator = new JSeparator();
+		menuSimulacao.add(separator);
+		
+		menuFastStart = new JMenuItem("Início Rápido");
+		menuFastStart.addActionListener(this);
+		menuSimulacao.add(menuFastStart);
+		
+		JMenu menuAjuda = new JMenu("Ajuda");
+		menuBar.add(menuAjuda);
+		
+		menuSobre = new JMenu("Sobre");
+		menuSobre.addActionListener(this);
+		menuAjuda.add(menuSobre);
 	}
 	
 	private void loadScript(Simulador simulador) {
@@ -250,7 +322,7 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 	}
 	
 	private void buildScreen() {
-		setSize(1280,640);
+		setSize(1280,680);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setResizable(false);
@@ -258,21 +330,15 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 	}
 	
 	private void inicializaGerenciadores() {
-		this.manager01 = new VehicleLightsManager(labelSemaforo01);
-		this.manager02 = new VehicleLightsManager(labelSemaforo02);
-		this.manager03 = new VehicleLightsManager(labelSemaforo03);
-		this.manager04 = new VehicleLightsManager(labelSemaforo04);
-	}
-	
-	private class SyncEvent implements ActionListener {
-
-		@Override
-		public void actionPerformed(ActionEvent event) {
-			simulador.sincroniza();
-			botaoSync.setVisible(false);
-			botaoSair.setVisible(true);
-		}
+		this.vehicl01 = new VehicleLightsManager(labelVeiculo01);
+		this.vehicl02 = new VehicleLightsManager(labelVeiculo02);
+		this.vehicl03 = new VehicleLightsManager(labelVeiculo03);
+		this.vehicl04 = new VehicleLightsManager(labelVeiculo04);
 		
+		this.walker01 = new WalkerLightsManager(labelPedestre01);
+		this.walker02 = new WalkerLightsManager(labelPedestre02);
+		this.walker03 = new WalkerLightsManager(labelPedestre03);
+		this.walker04 = new WalkerLightsManager(labelPedestre04);
 	}
 	
 	public void fireFluxoUpdate(Local chave, int valor) {
@@ -281,11 +347,11 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		
 		switch (chave) {
 			case JAPIIM_ENTRADA_CAMPUS:
-				fireTextFieldUpdate(textFluxo01, texto);
+				fireTextFieldUpdate(textFluxo02, texto);
 			break;
 			
 			case ENTRADA_SAIDA_CAMPUS:
-				fireTextFieldUpdate(textFluxo02, texto);
+				fireTextFieldUpdate(textFluxo01, texto);
 			break;
 			
 			case COROADO_ENTRADA_CAMPUS:
@@ -301,23 +367,47 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		}
 	}
 	
-	private void fireSemaforoUpdate(Local chave, Estado atual) {
+	private void fireSemaforoVeiculoUpdate(Local chave, Estado atual) {
 		
 		switch (chave) {
 			case JAPIIM_ENTRADA_CAMPUS:
-				manager01.changeState(atual);
+				vehicl01.changeState(atual);
 				break;
 		
 			case ENTRADA_SAIDA_CAMPUS:
-				manager02.changeState(atual);
+				vehicl02.changeState(atual);
 				break;
 		
 			case COROADO_ENTRADA_CAMPUS:
-				manager03.changeState(atual);
+				vehicl03.changeState(atual);
 				break;
 		
 			case SAIDA_CAMPUS_COROADO:
-				manager04.changeState(atual);
+				vehicl04.changeState(atual);
+				break;
+		
+			default:
+				break;
+		}
+	}
+	
+	private void fireSemaforoPedestreUpdate(Local chave, Estado atual) {
+		
+		switch (chave) {
+			case JAPIIM_ENTRADA_CAMPUS:
+				walker01.changeState(atual);
+				break;
+		
+			case ENTRADA_SAIDA_CAMPUS:
+				walker02.changeState(atual);
+				break;
+		
+			case COROADO_ENTRADA_CAMPUS:
+				walker03.changeState(atual);
+				break;
+		
+			case SAIDA_CAMPUS_COROADO:
+				walker04.changeState(atual);
 				break;
 		
 			default:
@@ -331,11 +421,11 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		
 		switch (chave) {
 			case JAPIIM_ENTRADA_CAMPUS:
-				fireTextFieldUpdate(textOcupacao01, texto);
+				fireTextFieldUpdate(textOcupacao02, texto);
 				break;
 		
 			case ENTRADA_SAIDA_CAMPUS:
-				fireTextFieldUpdate(textOcupacao02, texto);
+				fireTextFieldUpdate(textOcupacao01, texto);
 				break;
 		
 			case COROADO_ENTRADA_CAMPUS:
@@ -380,6 +470,73 @@ public class TelaPrincipal extends JFrame implements SemaforoListener {
 		Estado atual = semaforo.getEstadoAtual();
 		Local  local = semaforo.getLocalizacao();
 		
-		fireSemaforoUpdate(local, atual);
+		if (semaforo instanceof SemaforoPedestre)
+			fireSemaforoPedestreUpdate(local, atual);
+		else
+			fireSemaforoVeiculoUpdate (local, atual);
+	}
+
+	private void sincronizaSemaforos() {
+		simulador.sincroniza();
+	}
+	
+	private void iniciaSimulacao() {
+		simulador.start();
+	}
+	
+	private void carregaScript() {
+		loadScript(simulador);
+	}
+	
+	private void fastStart() {
+		carregaScript();
+		sincronizaSemaforos();
+		iniciaSimulacao();
+	}
+	
+	/** Tratamento de eventos de menu */
+	@Override
+	public void actionPerformed(ActionEvent event) {
+		Object source = event.getSource();
+		
+		if (source == menuSincroniza)
+			sincronizaSemaforos();
+		
+		else if (source == menuInicia)
+			iniciaSimulacao();
+		
+		else if (source == menuEditor)
+			new EditorScript(new File(PropertiesManager.getResource("config/script.ssf")));
+		
+		else if (source == menuLoadScript)
+			carregaScript();
+		
+		else if (source == menuFastStart)
+			fastStart();
+		
+		else if (source == menuSair)
+			dispose();
+	}
+
+	@Override
+	public void evento(ClockEvent event) {
+		long ciclos = ((Clock) event.getSource()).getCiclos();
+		UpdateCiclo job = new UpdateCiclo(ciclos);
+		SwingUtilities.invokeLater(job);
+	}
+	
+	private class UpdateCiclo implements Runnable {
+
+		private String ciclos;
+		
+		public UpdateCiclo(long ciclos) {
+			this.ciclos = Long.toString(ciclos);
+		}
+		
+		@Override
+		public void run() {
+			textCiclos.setText(ciclos);
+		}
+		
 	}
 }

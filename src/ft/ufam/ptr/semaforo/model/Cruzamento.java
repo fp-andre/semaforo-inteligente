@@ -1,10 +1,9 @@
 package ft.ufam.ptr.semaforo.model;
 
 import java.util.*;
-
 import ft.ufam.ptr.semaforo.*;
 import ft.ufam.ptr.semaforo.clock.*;
-import ft.ufam.ptr.semaforo.graphics.TelaPrincipal;
+import ft.ufam.ptr.semaforo.graphics.*;
 
 /** Implementa um Cruzamento, onde há uma Via de viaEntrada,
  *  um Semaforo de referência e N Via's de saída, informadas
@@ -13,7 +12,7 @@ import ft.ufam.ptr.semaforo.graphics.TelaPrincipal;
  *  @see Semaforo
  *  @author Felipe André
  *  @author Paulo Henrique
- *  @version 2.1, 16/07/2015 */
+ *  @version 2.5, 01/08/2015 */
 public class Cruzamento implements ClockListener {
 
 	/* Atributos da classe */
@@ -77,6 +76,7 @@ public class Cruzamento implements ClockListener {
 			
 			if (veiculo != null) {
 				Local destino  = veiculo.getDestino();
+				
 				Via viaSaida = viasSaida.get(destino);
 				
 				if (viaSaida.temEspacoNaVia()) {
@@ -88,11 +88,21 @@ public class Cruzamento implements ClockListener {
 		}
 	}
 	
+	/** Mantém os Semáforos Master atualizados com fluxo das
+	 *  vias, isto serve para o processamento da inteligência
+	 *  @see SemaforoMaster */
+	private void atualizaFluxoMaster() {
+		if (semaforo instanceof SemaforoMaster)
+			((SemaforoMaster) semaforo).setFluxo(fluxo);
+	}
+	
 	@Override
 	public void evento(ClockEvent event) {
+		detectaTransicao();
+		
 		if (semaforo.aberto())
 			movimentaVeiculos();
-		detectaTransicao();
+		atualizaFluxoMaster();
 		
 		screen.fireFluxoUpdate(viaEntrada.getLocalizacao(), getFluxoVeiculos());
 		screen.fireOcupacaoUpdate(viaEntrada.getLocalizacao(), viaEntrada.getOcupacaoVia());

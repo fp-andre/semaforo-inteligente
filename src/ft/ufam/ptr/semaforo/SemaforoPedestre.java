@@ -44,7 +44,6 @@ public class SemaforoPedestre extends Semaforo implements SemaforoListener {
 		Semaforo base = (Semaforo) event.getSource();
 		Estado atual = base.getEstadoAtual();
 		processaEstado(atual);
-		
 		disparaEventos();
 	}
 

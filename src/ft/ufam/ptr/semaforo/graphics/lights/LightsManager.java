@@ -2,6 +2,7 @@ package ft.ufam.ptr.semaforo.graphics.lights;
 
 import javax.swing.*;
 import ft.ufam.ptr.semaforo.*;
+import ft.ufam.ptr.semaforo.clock.Clock;
 
 /** Superclasse do sistema de gerenciamento de efeitos
  *  gráficos dos semáforos de veículos e pedestres.
@@ -10,7 +11,6 @@ import ft.ufam.ptr.semaforo.*;
 public abstract class LightsManager {
 	
 	/* Atributos da classe */
-	private static final int millis = 500;
 	private final JLabel semaforo;
 	private Estado atual;
 	
@@ -27,14 +27,20 @@ public abstract class LightsManager {
 		SwingUtilities.invokeLater(job);
 	}
 	
+	/** Classe que implementa um trabalho a ser executado
+	 *  pelo escalonador de Threads do Java Swing. Este
+	 *  atualiza a imagem do JLabel. */
 	private class SetLight implements Runnable {
 
+		/* Novo ícone */
 		private Icon icone;
 		
+		/** Inicialização do ícone */
 		public SetLight(Icon icone) {
 			this.icone = icone;
 		}
 		
+		/** Troca a imagem do JLabel */
 		@Override
 		public void run() {
 			semaforo.setIcon(icone);
@@ -42,19 +48,25 @@ public abstract class LightsManager {
 		
 	}
 	
+	/** Atualiza o estado atual do semáforo gráfico */
 	protected void setEstadoAtual(Estado novo) {
 		this.atual = novo;
 	}
 	
+	/** Recupera o estado atual do semáforo gráfico */
 	protected Estado getEstadoAtual() {
 		return atual;
 	}
 	
+	/** Recupera o tempo de sono da Thread */
 	protected int getSleepTime() {
-		return millis;
+		return (Clock.SLEEP_TIME / 2);
 	}
 	
+	/** Implementação da máquina de estados */
 	public abstract void changeState(Estado novo);
+	
+	/** Implementação do efeito de piscar das lâmpadas do semáforo */
 	protected abstract void blinkLights();
 
 }
