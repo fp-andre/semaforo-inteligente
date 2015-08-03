@@ -7,7 +7,7 @@ import ft.ufam.ptr.semaforo.model.*;
  *  Com este é possível configurar a base de tempo do sistema e
  *  a instanciação dos geradores de fluxo das vias.
  *  @author Felipe André
- *  @version 1.5, 02/08/2015 */
+ *  @version 2.0, 03/08/2015 */
 public class Interpreter extends Thread {
 	
 	/* Atributos da classe */
@@ -44,7 +44,7 @@ public class Interpreter extends Thread {
 		
 		try {
 			while ( (line = stream.readLine()) != null ) {
-				String[] splitted = line.split(" ");
+				String[] splitted = line.trim().split(" ");
 				String comando = splitted[0];
 				parseCommand(comando, splitted, line);
 			}
@@ -76,11 +76,11 @@ public class Interpreter extends Thread {
 			case "":
 				break;
 		
-			case "baseTempo":
+			case "BASE_TEMPO":
 				setBaseTempo(args);
 			break;
 			
-			case "gera":
+			case "GERA":
 				criaGerador(args);
 			break;
 			

@@ -2,6 +2,7 @@ package ft.ufam.ptr.semaforo.graphics;
 
 import java.io.*;
 import java.awt.*;
+import java.util.*;
 import javax.swing.*;
 import java.awt.event.*;
 import ft.ufam.ptr.semaforo.*;
@@ -13,7 +14,7 @@ import ft.ufam.ptr.semaforo.graphics.lights.*;
 
 /** Contém a implementação da interface gráfica principal do sistema.
  *  @author Felipe André
- *  @version 7.5, 02/08/2015 */
+ *  @version 8.0, 03/08/2015 */
 public class TelaPrincipal extends JFrame implements ActionListener, ClockListener, SemaforoListener {
 
 	/* Atributos funcionais da classe */
@@ -539,8 +540,20 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		
 		@Override
 		public void keyPressed(KeyEvent event) {
-			if (event.getKeyCode() == KeyEvent.VK_Q)
-				dispose();
+			
+			final int virtual_key = event.getKeyCode();
+			
+			switch (virtual_key) {
+			
+				case KeyEvent.VK_Q:
+					dispose();
+				break;
+					
+				case KeyEvent.VK_P:
+					new PrintMessage(textArea).printMessage();
+				break;
+				
+			}
 		}
 		
 	}
@@ -614,6 +627,46 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		@Override
 		public void run() {
 			textArea.append(string);
+		}
+		
+	}
+	
+	/** Imprime a área de logs no arquivo "results.txt" salvo na pasta de usuário */
+	private class PrintMessage {
+		
+		/* Atributos funcionais da classe */
+		private final String filename = "results.txt";
+		private final String mensagem;
+		
+		/** Inicializa a mensagem a ser gravada */
+		public PrintMessage(JTextArea component) {
+			this.mensagem = component.getText().trim();
+		}
+		
+		/** Monta o arquivo de saída */
+		private File getOutputStream() throws FileNotFoundException {
+			Properties props = System.getProperties();
+			
+			String home = props.getProperty("user.home");
+			String separator = props.getProperty("file.separator");
+			
+			String path = (home + separator + filename);
+			
+			return new File(path);
+		}
+		
+		/** Imprime a mensagem no arquivo */
+		public void printMessage() {
+			try {
+				File arquivo = getOutputStream();
+				PrintWriter stream = new PrintWriter(arquivo);
+				stream.println(mensagem);
+				stream.close();
+				AlertDialog.informativo("Arquivo de Log", "Arquivo de log salvo com sucesso em\n" + arquivo.getAbsolutePath());
+			}
+			catch (Exception exception) {
+				AlertDialog.erro("Arquivo de Log", "Falha ao salvar o arquivo de log\nna pasta de usuário.");
+			}
 		}
 		
 	}
