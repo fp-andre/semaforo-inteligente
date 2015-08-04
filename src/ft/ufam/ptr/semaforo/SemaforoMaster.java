@@ -11,13 +11,14 @@ import ft.ufam.ptr.semaforo.model.*;
  *  @see SemaforoSlave
  *  @author Felipe André
  *  @author Paulo Henrique
- *  @version 2.5, 02/08/2015 */
+ *  @version 3.0, 03/08/2015 */
 public class SemaforoMaster extends Semaforo implements ClockListener {
 
 	/* Variáveis de temporização dos semáforos */
 	private int tempoVerde;
 	private int faixaTempo;
 	private int fluxo;
+	private boolean smartEnabled = true;
 	private final int tempoVerdeIT;
 	private final int tempoAmarelo;
 	private final int tempoAvisoVermelho;
@@ -128,7 +129,7 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 			case VERDE:
 				simetrico.setEstadoVermelho();
 				if (tempoEsgotado(tempoVerde))
-					inteligencia();
+					processaEstadoVerde();
 			break;
 				
 			case VERDE_INTERMITENTE:
@@ -156,6 +157,22 @@ public class SemaforoMaster extends Semaforo implements ClockListener {
 			break;
 		}
 		
+	}
+	
+	/** Ativa ou desativa a inteligência do semáforo */
+	public void setSmartStatus(boolean status) {
+		this.smartEnabled = status;
+	}
+	
+	/** Permite uma maior flexibilidade à inteligência do sistema. Caso esta
+	 *  esteja desativada, o semáforo segue a máquina de estados padrão. */
+	private void processaEstadoVerde() {
+		if (smartEnabled)
+			inteligencia();
+		else {
+			setEstadoAtual(Estado.VERDE_INTERMITENTE);
+			reiniciaCiclos();
+		}
 	}
 	
 	/** Atualiza o fluxo de veículos */

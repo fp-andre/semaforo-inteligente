@@ -12,11 +12,12 @@ import ft.ufam.ptr.semaforo.graphics.*;
  *  @see Semaforo
  *  @author Felipe André
  *  @author Paulo Henrique
- *  @version 2.5, 01/08/2015 */
+ *  @version 3.0, 03/08/2015 */
 public class Cruzamento implements ClockListener {
 
 	/* Atributos da classe */
 	private int fluxo;
+	private boolean congestionamento;
 	private final Via viaEntrada;
 	private final Semaforo semaforo;
 	private Estado anterior, atual;
@@ -32,6 +33,7 @@ public class Cruzamento implements ClockListener {
 		this.semaforo  = semaforo;
 		this.fluxo = 0;
 		this.screen = screen;
+		this.congestionamento = false;
 	}
 
 	/** Cadastra uma via de saída no cruzamento.
@@ -62,8 +64,10 @@ public class Cruzamento implements ClockListener {
 		anterior = atual;
 		atual = semaforo.getEstadoAtual();
 		
-		if ((anterior == Estado.VERMELHO) && (atual == Estado.VERDE))
+		if ((anterior == Estado.VERMELHO) && (atual == Estado.VERDE)) {
 			reiniciaFluxo();
+			congestionamento = false;
+		}
 	}
 	
 	/** Repassa veículos da via de viaEntrada para uma das
@@ -84,16 +88,25 @@ public class Cruzamento implements ClockListener {
 					viaSaida.insereVeiculoVia(veiculo, i);
 					incrementaFluxo();
 				}
+				else if (!congestionamento) {
+					String local = viaEntrada.getLocalizacao().name();
+					System.out.printf("#via %s congestionada!\n",local);
+					congestionamento = true;
+				}
 			}
 		}
 	}
 	
-	/** Mantém os Semáforos Master atualizados com fluxo das
-	 *  vias, isto serve para o processamento da inteligência
+	/** Mantém os Semáforos Master atualizados com
+	 *  o fluxo das vias e o estado da inteligência
 	 *  @see SemaforoMaster */
-	private void atualizaFluxoMaster() {
-		if (semaforo instanceof SemaforoMaster)
-			((SemaforoMaster) semaforo).setFluxo(fluxo);
+	private void comunicaMaster() {
+		if (semaforo instanceof SemaforoMaster) {
+			SemaforoMaster aux = (SemaforoMaster) semaforo;
+			
+			aux.setFluxo(fluxo);
+			aux.setSmartStatus(screen.getEstadoInteligencia());
+		}
 	}
 	
 	@Override
@@ -103,7 +116,7 @@ public class Cruzamento implements ClockListener {
 		if (semaforo.aberto())
 			movimentaVeiculos();
 		
-		atualizaFluxoMaster();
+		comunicaMaster();
 		
 		screen.fireFluxoUpdate   (viaEntrada.getLocalizacao(), getFluxoVeiculos());
 		screen.fireOcupacaoUpdate(viaEntrada.getLocalizacao(), viaEntrada.getOcupacaoVia());

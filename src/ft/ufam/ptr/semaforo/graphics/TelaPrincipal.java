@@ -14,17 +14,21 @@ import ft.ufam.ptr.semaforo.graphics.lights.*;
 
 /** Contém a implementação da interface gráfica principal do sistema.
  *  @author Felipe André
- *  @version 8.0, 03/08/2015 */
+ *  @version 8.5, 03/08/2015 */
 public class TelaPrincipal extends JFrame implements ActionListener, ClockListener, SemaforoListener {
 
 	/* Atributos funcionais da classe */
 	private static final long serialVersionUID = 1L;
 	private final JPanel painelMaster;
 	private final Simulador simulador;
+	private int congestionamentos = 0;
+	private long ciclos, remain;
+	private boolean smart = true;
 	private static final File DEFAULT = new File(PropertiesManager.getResource("config/default.ssf"));
 	
 	/* Itens de Menu */
-	private JMenuItem menuEditor, menuSair, menuLoadScript, menuInicia, menuSincroniza, menuFastStart, menuStop, menuSobre;
+	private JMenuItem menuEditor, menuSair, menuLoadScript, menuInicia, menuSincroniza, menuFastStart, menuStop, menuStats, menuSobre;
+	private JRadioButtonMenuItem radioInteligencia;
 	
 	/* Gerenciadores de Efeitos Gráficos dos Semáforos */
 	private VehicleLightsManager vehicl01, vehicl02, vehicl03, vehicl04;
@@ -42,6 +46,7 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 	/* Informações dos Ciclos de Clock */
 	private JLabel labelCiclos, textCiclos;
 	private JSeparator separator;
+	private JTextField textTime;
 
 	/** Função principal */
 	public static void main(String[] args) {
@@ -237,7 +242,20 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		textCiclos.setBounds(1165, 130, 70, 15);
 		painelMaster.add(textCiclos);
 		
+		JLabel labelTime = new JLabel("Tempo de Simulação (em ciclos)");
+		labelTime.setForeground(Color.WHITE);
+		labelTime.setFont(fonte);
+		labelTime.setBounds(541, 13, 271, 15);
+		painelMaster.add(labelTime);
+		
+		textTime = new JTextField("30");
+		textTime.setFont(fonte);
+		textTime.setBounds(600, 33, 114, 19);
+		painelMaster.add(textTime);
+		textTime.setColumns(10);
+		
 		buildScreen();
+		radioInteligencia.setSelected(true);
 		
 		simulador = new Simulador(this);
 		inicializaGerenciadores();
@@ -268,6 +286,10 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		
 		menuInicia = new JMenuItem("Iniciar Simulação");
 		menuInicia.addActionListener(this);
+		
+		radioInteligencia = new JRadioButtonMenuItem("Inteligência");
+		radioInteligencia.addActionListener(this);
+		menuSimulacao.add(radioInteligencia);
 		menuSimulacao.add(menuInicia);
 		
 		menuSincroniza = new JMenuItem("Sincronizar Semáforos");
@@ -287,6 +309,10 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		menuStop = new JMenuItem("Encerrar Simulação");
 		menuStop.addActionListener(this);
 		menuSimulacao.add(menuStop);
+		
+		menuStats = new JMenuItem("Salvar Estatísticas");
+		menuStats.addActionListener(this);
+		menuSimulacao.add(menuStats);
 		
 		JMenu menuAjuda = new JMenu("Ajuda");
 		menuBar.add(menuAjuda);
@@ -442,7 +468,13 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 	
 	/** Inicia a simulação */
 	private void iniciaSimulacao() {
-		simulador.start();
+		try {
+			this.remain = Integer.parseInt(textTime.getText());
+			simulador.start();
+		}
+		catch (NumberFormatException exception) {
+			AlertDialog.erro("Digite um tempo de simulação válido!");
+		}
 	}
 	
 	/** Carrega o arquivo de scripts */
@@ -469,6 +501,26 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		simulador.stop();
 	}
 	
+	/** Retorna o estado atual da inteligência do sistema */
+	public boolean getEstadoInteligencia() {
+		return smart;
+	}
+	
+	/** Imprime os resultados da simulação em um arquivo texto */
+	private void salvaResultado() {
+		new PrintMessage(textArea).printMessage();
+	}
+	
+	/** Ativa ou desativa a inteligência do sistema */
+	private void toggleInteligencia() {
+		this.smart = radioInteligencia.isSelected();
+		
+		if (smart)
+			System.out.println("Inteligência do sistema ativada!");
+		else
+			System.out.println("Inteligência do sistema desativada!");
+	}
+	
 	/** Imprime informações legais */
 	private void about() {
 		String texto = " -> Semáforo Inteligente <-\n"
@@ -485,7 +537,14 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 	/** Atualização dos ciclos de clock */
 	@Override
 	public void evento(ClockEvent event) {
-		long ciclos = ((Clock) event.getSource()).getCiclos();
+		this.ciclos = ((Clock) event.getSource()).getCiclos();
+		
+		// Verifica se o tempo de simulação se esgotou
+		if ((remain - ciclos) == 0) {
+			stop();
+			salvaResultado();
+		}
+		
 		UpdateCiclo job = new UpdateCiclo(ciclos);
 		SwingUtilities.invokeLater(job);
 	}
@@ -529,6 +588,12 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		else if (source == menuSobre)
 			about();
 		
+		else if (source == menuStats)
+			salvaResultado();
+		
+		else if (source == radioInteligencia)
+			toggleInteligencia();
+		
 		else if (source == menuSair)
 			dispose();
 	}
@@ -550,7 +615,7 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 				break;
 					
 				case KeyEvent.VK_P:
-					new PrintMessage(textArea).printMessage();
+					salvaResultado();
 				break;
 				
 			}
@@ -607,6 +672,12 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		@Override
 		public void write(byte[] charSequence, int offset, int length) throws IOException {
 			String nova = new String(charSequence,offset,length);
+			
+			if (nova.startsWith("#")) {
+				congestionamentos++;
+				nova = nova.replace("#","");
+			}
+			
 			UpdateText job = new UpdateText(nova);
 			SwingUtilities.invokeLater(job);
 		}
@@ -640,7 +711,9 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		
 		/** Inicializa a mensagem a ser gravada */
 		public PrintMessage(JTextArea component) {
-			this.mensagem = component.getText().trim();
+			String cong = "\n\nQuantidade de Congestionamentos: " + congestionamentos;
+			String cics = "\nQuantidade de Ciclos Simulados: " + ciclos;
+			this.mensagem = component.getText().trim() + cong + cics;
 		}
 		
 		/** Monta o arquivo de saída */
@@ -670,5 +743,4 @@ public class TelaPrincipal extends JFrame implements ActionListener, ClockListen
 		}
 		
 	}
-	
 }
